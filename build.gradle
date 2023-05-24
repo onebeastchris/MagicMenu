@@ -8,22 +8,25 @@ version '1.0.0'
 
 repositories {
     mavenCentral()
-    mavenLocal()
     maven {
         url 'https://repo.opencollab.dev/maven-snapshots'
-        mavenContent {
-            snapshotsOnly()
-        }
     }
+    maven {
+        url 'https://repo.opencollab.dev/maven-releases'
+    }
+    mavenLocal()
 }
 
 dependencies {
     // Geyser API - needed for all extensions
-    api 'org.geysermc.geyser:api:2.1.0-SNAPSHOT'
+    api('org.geysermc.geyser:api:2.1.0-SNAPSHOT')
 
     // If you want to use the Cumulus for forms, uncomment the following line.
     // Usually, you would need to include it as an implementation, but Geyser provides it, so you can use it as an API.
-    api 'org.geysermc.cumulus:api:1.0-SNAPSHOT'
+    api('org.geysermc.cumulus:api:1.0-SNAPSHOT')
 
     // Include other dependencies here - e.g. for configuration.
+    api('org.geysermc.geyser:core:2.1.0-SNAPSHOT') {
+        exclude group: 'io.netty'
+    }
 }

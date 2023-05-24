@@ -1,6 +1,6 @@
-id: exampleid
-name: ExampleExtension
-main: org.geyser.extension.exampleid.ExampleExtension
+id: emotecommandmenu
+name: EmoteCommandMenu
+main: net.onebeastchris.extension.emotecommandmenu.EmoteCommandMenu
 api: 1.0.0
 version: 1.0.0
-authors: [ExampleAuthor]
+authors: [onebeastchris]
