@@ -1,4 +1,4 @@
-package net.onebeastchris.extension.config;
+package net.onebeastchris.extension.emotecommandmenu.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,20 +19,16 @@ import java.util.Collections;
 
 public class ConfigLoader {
     public static <T> T load(Extension extension, Class<?> extensionClass, Class<T> configClass, @NonNull ExtensionLogger logger) {
-
-        logger.info("Loading config");
         File configFile = extension.dataFolder().resolve("config.yml").toFile();
 
         // Ensure the data folder exists
         if (!extension.dataFolder().toFile().exists()) {
-            logger.info("Creating data folder");
             if (!extension.dataFolder().toFile().mkdirs()) {
                 extension.logger().error("Failed to create data folder");
                 return null;
             }
         }
 
-        logger.info("Checking if config exists");
         // Create the config file if it doesn't exist
         if (!configFile.exists()) {
             try (FileWriter writer = new FileWriter(configFile)) {
@@ -53,11 +49,12 @@ public class ConfigLoader {
             }
         }
 
-        logger.info("Loading config file");
         // Load the config file
         try {
             return new ObjectMapper(new YAMLFactory())
                     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    .disable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES)
+                    .disable(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES)
                     .readValue(configFile, configClass);
         } catch (IOException e) {
             extension.logger().error("Failed to load config", e);

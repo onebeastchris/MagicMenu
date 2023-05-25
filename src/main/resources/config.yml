@@ -1,27 +1,60 @@
-# CommandManagerExtension config
+# CommandManagerExtension config file
 
-title: "CommandManagerExtension"
-description: "Select a plugin to run a command from."
+# config version - do not change this.
+config-version: 1.0
 
-main-page-buttons:
-  - name: test
-    description: test
-    image-url: https://i.imgur.com/0Q4XQ4M.png
-    commands:
-      - name: testcommand
-        command: say test worked
-        image-url: https://i.imgur.com/0Q4XQ4M.png
-  - name: test2
-    description: test2
-    image-url: https://i.imgur.com/0Q4XQ4M.png
-    commands:
-      - name: testcommand2
-        command: say test worked2
-        image-url: https://i.imgur.com/0Q4XQ4M.png
-
+# Should emotes be shown when used to open a menu?
 show-emotes: true
 
-emote-list:
-  - 6d9f24c0-6246-4c92-8169-4648d1981cbb
-  - 7cec98d8-55cc-44fe-b0ae-2672b0b2bd37
-  - 42fde774-37d4-4422-b374-89ff13a6535a
+# If this is set to true, closing a form will return to the previous form.
+go-back: true
+
+#Define your menus here. You can have as many as you want, but practically, not more than 4 - one for each emote.
+menus:
+  # Enter the emote uuid here. Or, all for all emotes (not recommended). Take the uuid from here:
+  # https://github.com/JustTalDevelops/bedrock-emotes
+  # You can also set it to "all", this would mean that the menu would open for all emotes. You cannot have multiple "all" menus.
+  - emote-uuid: all
+    # Enter the title/description of the menu here; description is optional.
+    form-title: Form1
+    form-description: Form1 description
+
+    # Configure the buttons here.
+    buttons:
+      # name/description of the button. Here, we define a command, so clicking the button will run the command.
+      - name: Button1
+        description: Button1 description
+        command:
+          command-name: Command1
+          run: say Command1
+
+      # same as above - but with an image for the button!
+      - name: Button2
+        description: Button2 description
+        image-url:
+        command:
+          command-name: Command2
+          run: say Command2
+
+      # You can also open a menu with more commands
+      # buttons can have an image next to them
+      - name: say plugin
+        description: Commands from §2say plugin"
+        image-url:
+        commands:
+          - command-name: say hi
+            image-url:
+            run: say hi
+          - command-name: say not hi
+            image-url:
+            run: say not hi
+          - command-name: gamemode creative
+            image-url:
+            run: gamemode creative
+
+    # You can also run a command directly, without opening a menu.
+    # note here: we set a specific emote uuid (from https://github.com/JustTalDevelops/bedrock-emotes), it will override the "all" menu.
+  - emote-uuid: 6d9f24c0-6246-4c92-8169-4648d1981cbb
+    command:
+      command-name: Command4
+      run: say Command4
