@@ -34,7 +34,7 @@ menus:
         image-url:
         command:
           command-name: Command2
-          run: say Command2
+          run: say !%input:name to enter,hi% !%toggle:randomtest,true%
 
       # You can also open a menu with more commands
       # buttons can have an image next to them
@@ -44,11 +44,11 @@ menus:
         commands:
           - command-name: say hi
             image-url:
-            run: say hi
+            run: say !%dropdown:Choose a dropdown, default, just, some, more, options% !%slider:Choose a slider, 0, 10, 1, 5%
           - command-name: say not hi
             image-url:
-            run: say not hi
-          - command-name: gamemode creative
+            run: say !%step-slider:Choose a step slider, 0, 10, 1,2,3,4,5% !%input:Enter a number, 0%
+          - command-name: gamemode !&dropdown:Choose a gamemode, creative, creative, survival, adventure, spectator%
             image-url:
             run: gamemode creative
 
