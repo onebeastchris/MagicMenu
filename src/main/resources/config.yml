@@ -39,18 +39,30 @@ menus:
       # You can also open a menu with more commands
       # buttons can have an image next to them
       - name: say plugin
-        description: Commands from §2say plugin"
+        description: §2say commands
         image-url:
         commands:
           - command-name: say hi
             image-url:
-            run: say !%dropdown:Choose a dropdown, default, just, some, more, options% !%slider:Choose a slider, 0, 10, 1, 5%
+            run: say !%dropdown:Choose a dropdown,default,default,just,some,more,options% !%slider:Choose a slider, 0, 10, 1, 5%
           - command-name: say not hi
             image-url:
-            run: say !%step-slider:Choose a step slider, 0, 10, 1,2,3,4,5% !%input:Enter a number, 0%
-          - command-name: gamemode !&dropdown:Choose a gamemode, creative, creative, survival, adventure, spectator%
+            run: say !%step-slider:Choose a step slider, 0,10,1,2,3,4,5% !%input:Enter a number, 0%
+          - command-name: gamemode
             image-url:
-            run: gamemode creative
+            run: gamemode !%dropdown:Choose a gamemode, creative, creative, survival, adventure, spectator%
+      - name: Geyser Commands
+        description: Commands from Geyser
+        image-url: https://avatars.githubusercontent.com/u/52673035?s=200&v=4
+        commands:
+          - command-name: advancements
+            run: geyser advancements
+          - command-name: offhand
+            run: geyser offhand
+          - command-name: statistics
+            run: geyser statistics
+          - command-name: tooltips
+            run: geyser tooltips
 
     # You can also run a command directly, without opening a menu.
     # note here: we set a specific emote uuid (from https://github.com/JustTalDevelops/bedrock-emotes), it will override the "all" menu.

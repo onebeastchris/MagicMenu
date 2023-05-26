@@ -3,6 +3,8 @@ package net.onebeastchris.extension.emotecommandmenu.util;
 import net.onebeastchris.extension.emotecommandmenu.EmoteCommandMenu;
 import net.onebeastchris.extension.emotecommandmenu.config.Config;
 import org.geysermc.cumulus.component.DropdownComponent;
+import org.geysermc.cumulus.component.SliderComponent;
+import org.geysermc.cumulus.component.StepSliderComponent;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.util.FormImage;
@@ -14,8 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.Stack;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -91,7 +91,7 @@ public class MenuHandler {
             temp.clear();
         });
 
-        simpleForm.invalidResultHandler((buttonform, response) -> {
+        simpleForm.closedOrInvalidResultHandler((buttonform, response) -> {
             temp.clear();
             if (EmoteCommandMenu.getConfig().goBackOnClosed()) {
                 session.sendForm(simpleForm);
@@ -106,11 +106,9 @@ public class MenuHandler {
             return;
         }
         if (commandHolder.command().contains("%")) {
-
             CustomForm.Builder customForm = CustomForm.builder()
                     .title(commandHolder.name());
 
-            // custom inputs pls
             Pattern pattern = Pattern.compile("!%(.*?)%");
             Matcher matcher = pattern.matcher(commandHolder.command());
 
@@ -123,64 +121,78 @@ public class MenuHandler {
 
             for (String placeholder : placeholders) {
                 String[] splitString = placeholder.split(":");
-                switch (splitString[0]) {
+
+                String type = splitString[0];
+                splitString[1].replace(", ", ",");
+                String[] options = splitString[1].split(",");
+                switch (type) {
                     case "input" -> {
-                        String[] splitInput = splitString[1].split(",");
-                        if (splitInput.length < 1) {
+                        if (options.length < 2) {
                             EmoteCommandMenu.getLogger().error("Invalid input placeholder: " + placeholder);
                             return;
                         }
-                        defaultValues.add(splitInput[1]);
-                        customForm.input(splitInput[0], splitInput[1]);
+                        defaultValues.add(options[1]);
+                        customForm.input(options[0], options[1]);
                     }
                     case "toggle" -> {
-                        String[] splitToggle = splitString[1].split(",");
-                        if (splitToggle.length < 1) {
+                        if (options.length < 2) {
                             EmoteCommandMenu.getLogger().error("Invalid toggle placeholder: " + placeholder);
                             return;
                         }
-                        boolean defaultValue = Boolean.parseBoolean(splitToggle[1]);
+                        boolean defaultValue = Boolean.parseBoolean(options[1]);
                         defaultValues.add(String.valueOf(defaultValue));
-                        customForm.toggle(splitToggle[0], defaultValue);
+                        customForm.toggle(options[0], defaultValue);
                     }
                     case "dropdown" -> {
-                        String[] splitDropdown = splitString[1].split(",");
-                        if (splitDropdown.length < 1) {
+                        if (options.length < 4) {
                             EmoteCommandMenu.getLogger().error("Invalid dropdown placeholder: " + placeholder);
                             return;
                         }
-                        defaultValues.add(splitDropdown[1]);
-                        //fuck me. really? why....
-                        //TODO - set default
-                        customForm.dropdown(splitDropdown[0], Arrays.copyOfRange(splitDropdown, 2, splitDropdown.length));
+                        String defaultValue = options[1];
+                        defaultValues.add(defaultValue);
+                        int index = 0;
+                        String[] dropdownOptions = Arrays.copyOfRange(options, 2, options.length);
+                        // Find the index of the default value
+                        for (int i = 0; i < dropdownOptions.length; i++) {
+                            if (options[i].equals(defaultValue)) {
+                                index = i;
+                                customForm.dropdown(options[0], index, dropdownOptions);
+                                break;
+                            }
+                        }
                     }
                     case "slider" -> {
-                        String[] splitSlider = splitString[1].split(",");
-                        if (splitSlider.length < 1) {
+                        if (options.length < 5) {
                             EmoteCommandMenu.getLogger().error("Invalid slider placeholder: " + placeholder);
                             return;
                         }
-                        defaultValues.add(splitSlider[4]);
-                        customForm.slider(splitSlider[0],
-                                Float.parseFloat(splitSlider[1]),
-                                Float.parseFloat(splitSlider[2]),
-                                Float.parseFloat(splitSlider[3]),
-                                Float.parseFloat(splitSlider[4]));
+                        String text = options[0];
+
+                        for (int i = 1; i < options.length; i++) {
+                            // fix for slider values with spaces. bad.
+                            options[i] = options[i].replace(" ", "");
+                        }
+
+                        defaultValues.add(options[4]);
+                        customForm.slider(text,
+                                Float.parseFloat(options[1]),
+                                Float.parseFloat(options[2]),
+                                Float.parseFloat(options[3]),
+                                Float.parseFloat(options[4]));
                     }
                     case "step-slider" -> {
-                        String[] splitSlider = splitString[1].split(",");
-                        if (splitSlider.length < 1) {
+                        if (options.length < 1) {
                             EmoteCommandMenu.getLogger().error("Invalid slider placeholder: " + placeholder);
                             return;
                         }
-                        defaultValues.add(splitSlider[1]);
-                        customForm.stepSlider(splitSlider[0], Integer.parseInt(splitSlider[1]), Arrays.copyOfRange(splitSlider, 2, splitSlider.length));
+                        defaultValues.add(options[1]);
+                        customForm.stepSlider(options[0], Integer.parseInt(options[1].trim()), Arrays.copyOfRange(options, 2, options.length));
                     }
                 }
 
                 AtomicReference<String> commandToSend = new AtomicReference<>(commandHolder.command());
 
-                customForm.invalidResultHandler((form, response) -> {
+                customForm.closedOrInvalidResultHandler((form, response) -> {
                     if (EmoteCommandMenu.getConfig().goBackOnClosed()) {
                         session.sendForm(customForm);
                     }
@@ -190,21 +202,35 @@ public class MenuHandler {
 
                 customForm.validResultHandler((form, response) -> {
                     for (int i = 0; i < placeholders.size(); i++) {
+
+                        String replace = placeholders.get(i);
+                        String defaultValue = defaultValues.get(i);
                         var value = response.valueAt(i);
+
                         if (value != null && !value.toString().isEmpty()) {
-                            if (form.content().get(i) instanceof DropdownComponent dropdownComponent) {
-                                    value = dropdownComponent.text();
+                            var component = form.content().get(i);
+
+                            // special handling for dropdowns, and sliders.
+                            if (component instanceof DropdownComponent dropdownComponent) {
+                                // we want to get the text, not the index
+                                value = dropdownComponent.options().get(response.asDropdown(i));
+                            } else if (component instanceof SliderComponent) {
+                                // we want an int, not float
+                                value.toString().replace(".0", "");
+                            } else if (component instanceof StepSliderComponent stepSliderComponent) {
+                                // we want to get text, not the index
+                                value = stepSliderComponent.steps().get(response.asStepSlider(i));
                             }
-                            EmoteCommandMenu.getLogger().info("Replacing " + placeholders.get(i) + " with " + value);
-                            commandToSend.set(commandToSend.get().replaceFirst("!%" + placeholders.get(i) + "%", String.valueOf(value)));
+                            commandToSend.set(commandToSend.get().replaceFirst("!%" + replace + "%", String.valueOf(value)));
                         } else {
-                            EmoteCommandMenu.getLogger().info("Replacing " + placeholders.get(i) + " with " + defaultValues.get(i));
-                            commandToSend.set(commandToSend.get().replaceFirst("!%" + placeholders.get(i) + "%", defaultValues.get(i)));
+                            commandToSend.set(commandToSend.get().replaceFirst("!%" + replace + "%", defaultValue));
                         }
                     }
                     EmoteCommandMenu.getLogger().info("Sending command: " + commandToSend.get());
                     session.sendCommand(commandToSend.get());
 
+                    defaultValues.clear();
+                    placeholders.clear();
                 });
             }
             session.sendForm(customForm);
