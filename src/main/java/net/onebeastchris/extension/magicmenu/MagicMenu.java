@@ -8,7 +8,6 @@ import org.geysermc.event.subscribe.Subscribe;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.extension.ExtensionLogger;
-import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -82,7 +81,7 @@ public class MagicMenu implements Extension {
     }
 
     public static void debug(String message) {
-        if (config.debug() || true) {
+        if (config.debug()) {
             getLogger().info(message);
         }
     }

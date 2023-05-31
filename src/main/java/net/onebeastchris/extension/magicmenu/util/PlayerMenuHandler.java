@@ -2,9 +2,7 @@ package net.onebeastchris.extension.magicmenu.util;
 
 import net.onebeastchris.extension.magicmenu.MagicMenu;
 import net.onebeastchris.extension.magicmenu.config.Config;
-import org.geysermc.api.Geyser;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.List;
 
@@ -26,7 +24,7 @@ public class PlayerMenuHandler {
     private Config.CommandHolder commandHolder;
 
     // storing the stage to go back to
-    // just the form/button/commandHolder isnt enough, since commands can be in both a form and a button.
+    // just the form/button/commandHolder isn't enough, since commands can be in both a form and a button.
     enum Stage {
         MAIN,
         BUTTON,
@@ -96,13 +94,13 @@ public class PlayerMenuHandler {
     private void executeButton(GeyserConnection connection){
         MagicMenu.getLogger().info("executing button");
         if (button == null) {
-            MagicMenu.getLogger().error("An error occurred while parsing button, is null when it shouldnt be.");
+            MagicMenu.getLogger().error("An error occurred while parsing button, is null when it shouldn't be.");
             executeMain(connection);
             return;
         }
 
         stage = Stage.MAIN;
-        MagicMenu.debug(button.toString() + " " + button.command());
+        MagicMenu.debug(button.toString());
         if (button.command() != null) {
             commandHolder = button.command();
             executeCommand(connection);
