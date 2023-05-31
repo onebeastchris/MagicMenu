@@ -20,5 +20,5 @@ There are main "elements":
 - buttons: When clicked, they can execute commands, or show another form
 - command holders: Hold the command, the name for it, the users allowed to run it, and the command to run them (with placeholder/player input placeholders support)
 
-[Placeholder](https://github.com/onebeastchris/MagicMenu/blob/master/setup.md)
-[Default/Example Config](https://github.com/onebeastchris/MagicMenu/blob/master/src/main/resources/config.yml)
+List of all available [Placeholder](https://github.com/onebeastchris/MagicMenu/blob/master/setup.md) <br>
+The [Default/Example Config](https://github.com/onebeastchris/MagicMenu/blob/master/src/main/resources/config.yml) for reference
