@@ -29,20 +29,21 @@ public class MenuHandler {
         Map<String, Config.Button> temp = new HashMap<>();
 
         SimpleForm.Builder simpleForm = SimpleForm.builder()
-                .title(formDefinition.title());
+                .title(PlaceHolder.parsePlaceHolders(connection, formDefinition.title()));
 
         if (formDefinition.description() != null && !formDefinition.description().isEmpty()) {
-            simpleForm.content(formDefinition.description());
+            simpleForm.content(PlaceHolder.parsePlaceHolders(connection, formDefinition.description()));
         }
 
         for (Config.Button button : formDefinition.buttons()) {
             if (PlayerMenuHandler.hasPerms(button.allowedUsers(), connection.bedrockUsername())) {
+                String name = PlaceHolder.parsePlaceHolders(connection, button.name());
                 if (button.imageUrl() == null || button.imageUrl().isEmpty()) {
-                    simpleForm.button(button.name());
+                    simpleForm.button(name);
                 } else {
-                    simpleForm.button(button.name(), FormImage.Type.URL, button.imageUrl());
+                    simpleForm.button(name, FormImage.Type.URL, PlaceHolder.parsePlaceHolders(connection, button.imageUrl()));
                 }
-                temp.put(button.name(), button);
+                temp.put(name, button);
             }
         }
 
@@ -82,9 +83,7 @@ public class MenuHandler {
         }
 
         GeyserSession session = (GeyserSession) connection;
-        String command = commandHolder.command();
-
-        command = PlaceHolder.parsePlaceHolders(session, command);
+        String command = PlaceHolder.parsePlaceHolders(session, commandHolder.command());
 
         // skip input placeholder if none are present
         if (!command.contains("!%")) {

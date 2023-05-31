@@ -11,7 +11,6 @@ public record Config(
         @JsonProperty("menus") List<EmoteDefinition> emoteDefinitions,
         @JsonProperty("show-emotes") boolean showEmotes,
         @JsonProperty("go-back")boolean goBackOnClosed,
-
         @JsonProperty("debug") boolean debug
     ) {
         public record EmoteDefinition(
