@@ -82,7 +82,7 @@ public class MagicMenu implements Extension {
     }
 
     public static void debug(String message) {
-        if (config.debug()) {
+        if (config.debug() || true) {
             getLogger().info(message);
         }
     }

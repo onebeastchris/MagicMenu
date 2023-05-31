@@ -102,6 +102,7 @@ public class PlayerMenuHandler {
         }
 
         stage = Stage.MAIN;
+        MagicMenu.debug(button.toString() + " " + button.command());
         if (button.command() != null) {
             commandHolder = button.command();
             executeCommand(connection);
@@ -118,6 +119,7 @@ public class PlayerMenuHandler {
                 goBack(connection);
                 return;
             }
+            MagicMenu.debug("command holder is " + commandHolder);
             this.commandHolder = commandHolder;
             stage = Stage.BUTTON;
             executeCommand(connection);
@@ -125,18 +127,25 @@ public class PlayerMenuHandler {
     }
 
     public void executeCommand(GeyserConnection connection) {
-        MenuHandler.RestultType resultType = MenuHandler.executeCommand(connection, commandHolder);
-        MagicMenu.getLogger().info("result type is " + resultType);
-        switch (resultType) {
-            case SUCCESS:
-                break;
-            case FAILURE:
-                connection.sendMessage("§cAn error occurred while parsing this command!");
-                break;
-            case CANCELLED:
-                goBack(connection);
-                break;
-        }
+        MenuHandler.executeCommand(connection, commandHolder).whenCompleteAsync((resultType, throwable) -> {
+            if (throwable != null) {
+                // who tf knows, better be safer than sorry
+                throwable.printStackTrace();
+                return;
+            }
+
+            MagicMenu.getLogger().info("result type is " + resultType);
+            switch (resultType) {
+                case SUCCESS:
+                    break;
+                case FAILURE:
+                    connection.sendMessage("§cAn error occurred while parsing this command!");
+                    break;
+                case CANCELLED:
+                    goBack(connection);
+                    break;
+            }
+        });
     }
 
     public static boolean hasPerms(Object list, String userName) {

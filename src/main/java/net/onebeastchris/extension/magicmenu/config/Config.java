@@ -78,10 +78,10 @@ public record Config(
             @JsonProperty("command-name")
             String name,
 
-                @JsonProperty("image-url")
+            @JsonProperty("image-url")
             String imageUrl,
 
-                @JsonProperty("run")
+            @JsonProperty("run")
             @NonNull String command
         ) {
         }

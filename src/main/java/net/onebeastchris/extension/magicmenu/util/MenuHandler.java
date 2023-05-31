@@ -9,7 +9,6 @@ import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
@@ -52,16 +51,17 @@ public class MenuHandler {
         simpleForm.validResultHandler((form, response) -> {
             Config.Button button = temp.get(response.clickedButton().text());
             temp.clear();
+            MagicMenu.debug("Clicked button " + button.name() + " in form " + formDefinition.title() + " for " + connection.bedrockUsername());
             futureResult.complete(button);
         });
 
-        simpleForm.invalidResultHandler((form, response) ->
-        {
+        simpleForm.invalidResultHandler((form, response) -> {
+            MagicMenu.debug("Invalid result for " + connection.bedrockUsername() + " in form " + formDefinition.title());
             temp.clear();
             futureResult.complete(null);
         });
-        connection.sendForm(simpleForm);
 
+        connection.sendForm(simpleForm);
         return futureResult;
     }
 
@@ -90,8 +90,8 @@ public class MenuHandler {
 
         simpleForm.validResultHandler((buttonform, response) -> {
             Config.CommandHolder holder = temp.get(response.clickedButton().text());
-            temp.clear();
             completableFuture.complete(holder);
+            temp.clear();
         });
 
         simpleForm.closedOrInvalidResultHandler((buttonform, response) -> {
@@ -102,174 +102,189 @@ public class MenuHandler {
         return completableFuture;
     }
 
-    static RestultType executeCommand(GeyserConnection connection, Config.CommandHolder commandHolder) {
+    static CompletableFuture<ResultType> executeCommand(GeyserConnection connection, Config.CommandHolder commandHolder) {
+        CompletableFuture<ResultType> completableFuture = new CompletableFuture<>();
         if (commandHolder.command().isEmpty()) {
             MagicMenu.getLogger().error(commandHolder + " is invalid, has no command!");
-            return RestultType.FAILURE;
+            completableFuture.complete(ResultType.CANCELLED);
+            return completableFuture;
         }
+
         if (!PlayerMenuHandler.hasPerms(commandHolder.allowedUsers(), connection.bedrockUsername())) {
-            // only way i see this happening would be a weird config, where a button is for all,
-            // but the command behind it locked...
-            return RestultType.CANCELLED;
+            // Only way I see this happening would be a weird config where a button is for all,
+            // but the command behind it is locked...
+            MagicMenu.getLogger().error(commandHolder + " cannot be run by " + connection.bedrockUsername() + "!");
+            completableFuture.complete(ResultType.CANCELLED);
+            return completableFuture;
         }
 
-        // unholy, yes, but api is way too limited.
         GeyserSession session = (GeyserSession) connection;
+        String command = commandHolder.command();
 
-        if (commandHolder.command().contains("%")) {
-            String command = commandHolder.command();
-
-            command.replace("%username%", connection.javaUsername());
-            command.replace("%xuid%", connection.xuid());
-            command.replace("%bedrockusername%", connection.bedrockUsername());
-            command.replace("%device%", connection.inputMode().name());
-            command.replace("%lang%", connection.languageCode());
-            command.replace("%x%", String.valueOf(session.getPlayerEntity().getPosition().getX()));
-            command.replace("%y%", String.valueOf(session.getPlayerEntity().getPosition().getY()));
-            command.replace("%z%", String.valueOf(session.getPlayerEntity().getPosition().getZ()));
-            command.replace("%location%", session.getPlayerEntity().getPosition().toString());
-
-            Pattern pattern_input = Pattern.compile("!%(.*?)%");
-            Matcher matcher = pattern_input.matcher(command);
-
-            List<String> placeholders = new ArrayList<>();
-            List<String> defaultValues = new ArrayList<>();
-
-            while (matcher.find()) {
-                placeholders.add(matcher.group(1));
-            }
-
-            CustomForm.Builder customForm = CustomForm.builder()
-                    .title(commandHolder.name());
-
-            for (String placeholder : placeholders) {
-                String[] splitString = placeholder.split(":");
-
-                String type = splitString[0];
-                String[] options = splitString[1].split(", ");
-                switch (type) {
-                    case "input" -> {
-                        if (options.length < 2) {
-                            MagicMenu.getLogger().error("Invalid input placeholder: " + placeholder + " in " + commandHolder.name());
-                            return RestultType.FAILURE;
-                        }
-                        defaultValues.add(options[1]);
-                        customForm.input(options[0], options[1]);
-                    }
-                    case "toggle" -> {
-                        if (options.length < 2) {
-                            MagicMenu.getLogger().error("Invalid toggle placeholder: " + placeholder + " in " + commandHolder.name());
-                            return RestultType.FAILURE;
-                        }
-                        boolean defaultValue = Boolean.parseBoolean(options[1]);
-                        defaultValues.add(String.valueOf(defaultValue));
-                        customForm.toggle(options[0], defaultValue);
-                    }
-                    case "dropdown" -> {
-                        if (options.length < 4) {
-                            MagicMenu.getLogger().error("Invalid dropdown placeholder: " + placeholder + " in " + commandHolder.name());
-                            return RestultType.FAILURE;
-                        }
-                        String defaultValue = options[1];
-                        defaultValues.add(defaultValue);
-                        int index = 0;
-                        String[] dropdownOptions = Arrays.copyOfRange(options, 2, options.length);
-                        // Find the index of the default value
-                        for (int i = 0; i < dropdownOptions.length; i++) {
-                            if (options[i].equals(defaultValue)) {
-                                index = i;
-                                break;
-                            }
-                        }
-                        customForm.dropdown(options[0], index, dropdownOptions);
-
-                    }
-                    case "slider" -> {
-                        if (options.length < 5) {
-                            MagicMenu.getLogger().error("Invalid slider placeholder: " + placeholder + " in " + commandHolder.name());
-                            return RestultType.FAILURE;
-                        }
-                        String text = options[0];
-
-                        for (int i = 1; i < options.length; i++) {
-                            // fix for slider values with spaces. bad.
-                            options[i] = options[i].replace(" ", "");
-                        }
-
-                        defaultValues.add(options[4]);
-                        customForm.slider(text,
-                                Float.parseFloat(options[1]),
-                                Float.parseFloat(options[2]),
-                                Float.parseFloat(options[3]),
-                                Float.parseFloat(options[4]));
-                    }
-                    case "step-slider" -> {
-                        if (options.length < 1) {
-                            MagicMenu.getLogger().error("Invalid slider placeholder: " + placeholder + " in " + commandHolder.name());
-                            return RestultType.FAILURE;
-                        }
-                        defaultValues.add(options[1]);
-                        customForm.stepSlider(options[0], Integer.parseInt(options[1].trim()), Arrays.copyOfRange(options, 2, options.length));
-                    }
-                }
-            }
-            AtomicReference<String> commandToSend = new AtomicReference<>(command);
-            AtomicReference<RestultType> result = new AtomicReference<>(RestultType.SUCCESS);
-
-            customForm.closedOrInvalidResultHandler((form, response) -> {
-                defaultValues.clear();
-                placeholders.clear();
-                MagicMenu.getLogger().info("setting cancelled");
-                result.set(RestultType.CANCELLED);
-            });
-
-            customForm.validResultHandler((form, response) -> {
-                for (int i = 0; i < placeholders.size(); i++) {
-
-                    String replace = placeholders.get(i);
-                    String defaultValue = defaultValues.get(i);
-                    var value = response.valueAt(i);
-
-                    if (value != null && !value.toString().isEmpty()) {
-                        Component component = form.content().get(i);
-                        // special handling for dropdowns, and sliders.
-
-                        switch (Objects.requireNonNull(component).type()) {
-                            case DROPDOWN -> // we want to get the text, not the index
-                                    value = ((DropdownComponent) component).options().get(response.asDropdown(i));
-                            case SLIDER -> // we want an int, not float
-                                    value = String.valueOf(value).replace(".0", "");
-                            case STEP_SLIDER -> // we want to get text, not the index
-                                    value = ((StepSliderComponent) component).steps().get(response.asStepSlider(i));
-                        }
-                        MagicMenu.getLogger().info("Replacing: " + replace + " with " + value);
-                        commandToSend.set(commandToSend.get().replaceFirst("!%" + replace + "%", String.valueOf(value)));
-                    } else {
-                        MagicMenu.getLogger().info("Replacing: " + replace + " with " + defaultValue);
-                        commandToSend.set(commandToSend.get().replaceFirst("!%" + replace + "%", defaultValue));
-                    }
-                }
-                MagicMenu.getLogger().info("Sending command: " + commandToSend.get());
-                session.sendCommand(commandToSend.get());
-
-                defaultValues.clear();
-                placeholders.clear();
-                MagicMenu.getLogger().info("setting success return");
-                result.set(RestultType.SUCCESS);
-            });
-            connection.sendForm(customForm);
-            MagicMenu.getLogger().info(result.get().name());
-            MagicMenu.getLogger().info("executeCommand: " + result.get());
-            return result.get();
-        } else {
-            session.sendCommand(commandHolder.command());
-
-            return RestultType.SUCCESS;
+        if (!command.contains("%")) {
+            session.sendCommand(command);
+            completableFuture.complete(ResultType.SUCCESS);
+            return completableFuture;
         }
 
+        command = command.replace("%username%", connection.javaUsername())
+                .replace("%xuid%", connection.xuid())
+                .replace("%uuid%", connection.javaUuid().toString())
+                .replace("%bedrockusername%", connection.bedrockUsername())
+                .replace("%device%", connection.inputMode().name())
+                .replace("%lang%", connection.languageCode())
+                .replace("%x%", String.valueOf(session.getPlayerEntity().getPosition().getX()))
+                .replace("%y%", String.valueOf(session.getPlayerEntity().getPosition().getY()))
+                .replace("%z%", String.valueOf(session.getPlayerEntity().getPosition().getZ()))
+                .replace("%position%", Math.floor(session.getPlayerEntity().getPosition().getX())
+                        + " " + Math.floor(session.getPlayerEntity().getPosition().getY())
+                        + " " + Math.floor(session.getPlayerEntity().getPosition().getZ()));
+
+        Pattern pattern_input = Pattern.compile("!%(.*?)%");
+        Matcher matcher = pattern_input.matcher(command);
+
+        List<String> placeholders = new ArrayList<>();
+        List<String> defaultValues = new ArrayList<>();
+
+        while (matcher.find()) {
+            placeholders.add(matcher.group(1));
+        }
+
+        if (placeholders.isEmpty()) {
+            session.sendCommand(command);
+            completableFuture.complete(ResultType.SUCCESS);
+            return completableFuture;
+        }
+
+        CustomForm.Builder formBuilder = CustomForm.builder()
+                .title(commandHolder.name());
+
+        for (String placeholder : placeholders) {
+            String[] splitString = placeholder.split(":");
+
+            String type = splitString[0];
+            String[] options = splitString[1].split(", ");
+
+            switch (type) {
+                case "input" -> {
+                    if (options.length < 2) {
+                        MagicMenu.getLogger().error("Invalid input placeholder: " + placeholder + " in " + commandHolder.name());
+                        completableFuture.complete(ResultType.FAILURE);
+                        return completableFuture;
+                    }
+                    defaultValues.add(options[1]);
+                    formBuilder.input(options[0], options[1]);
+                }
+                case "toggle" -> {
+                    if (options.length < 2) {
+                        MagicMenu.getLogger().error("Invalid toggle placeholder: " + placeholder + " in " + commandHolder.name());
+                        completableFuture.complete(ResultType.FAILURE);
+                        return completableFuture;
+                    }
+                    boolean defaultValue = Boolean.parseBoolean(options[1]);
+                    defaultValues.add(String.valueOf(defaultValue));
+                    formBuilder.toggle(options[0], defaultValue);
+                }
+                case "dropdown" -> {
+                    if (options.length < 4) {
+                        MagicMenu.getLogger().error("Invalid dropdown placeholder: " + placeholder + " in " + commandHolder.name());
+                        completableFuture.complete(ResultType.FAILURE);
+                        return completableFuture;
+                    }
+                    String dropdowndefault = options[1];
+                    defaultValues.add(dropdowndefault);
+                    int index = 0;
+                    String[] dropdownOptions = Arrays.copyOfRange(options, 2, options.length);
+                    // Find the index of the default value
+                    for (int i = 0; i < dropdownOptions.length; i++) {
+                        if (options[i].equals(dropdowndefault)) {
+                            index = i;
+                            break;
+                        }
+                    }
+                    formBuilder.dropdown(options[0], index, dropdownOptions);
+                }
+                case "slider" -> {
+                    if (options.length < 5) {
+                        MagicMenu.getLogger().error("Invalid slider placeholder: " + placeholder + " in " + commandHolder.name());
+                        completableFuture.complete(ResultType.FAILURE);
+                        return completableFuture;
+                    }
+                    String text = options[0];
+                    for (int i = 1; i < options.length; i++) {
+                        // Fix for slider values with spaces. Bad.
+                        options[i] = options[i].replace(" ", "");
+                    }
+                    defaultValues.add(options[4]);
+                    formBuilder.slider(text,
+                            Float.parseFloat(options[1]),
+                            Float.parseFloat(options[2]),
+                            Float.parseFloat(options[3]),
+                            Float.parseFloat(options[4]));
+                }
+                case "step-slider" -> {
+                    if (options.length < 1) {
+                        MagicMenu.getLogger().error("Invalid slider placeholder: " + placeholder + " in " + commandHolder.name());
+                        completableFuture.complete(ResultType.FAILURE);
+                        return completableFuture;
+                    }
+                    defaultValues.add(options[1]);
+                    formBuilder.stepSlider(options[0], Integer.parseInt(options[1].trim()), Arrays.copyOfRange(options, 2, options.length));
+                }
+            }
+        }
+
+        AtomicReference<String> finalCommand = new AtomicReference<>(command);
+
+        formBuilder.closedOrInvalidResultHandler((form, response) -> {
+            defaultValues.clear();
+            placeholders.clear();
+            MagicMenu.getLogger().info("Setting cancelled");
+            completableFuture.complete(ResultType.CANCELLED);
+        });
+
+        formBuilder.validResultHandler((form, response) -> {
+            for (int i = 0; i < placeholders.size(); i++) {
+                String replace = placeholders.get(i);
+                String defaultValue = defaultValues.get(i);
+                Object value = response.valueAt(i);
+
+                if (value != null && !value.toString().isEmpty()) {
+                    Component component = form.content().get(i);
+                    // Special handling for dropdowns and sliders.
+                    switch (Objects.requireNonNull(component).type()) {
+                        case DROPDOWN ->
+                            // We want to get the text, not the index
+                                value = ((DropdownComponent) component).options().get(response.asDropdown(i));
+                        case SLIDER ->
+                            // We want an int, not a float
+                                value = String.valueOf(value).replace(".0", "");
+                        case STEP_SLIDER ->
+                            // We want to get the text, not the index
+                                value = ((StepSliderComponent) component).steps().get(response.asStepSlider(i));
+                    }
+                    MagicMenu.debug("Replacing: " + replace + " with " + value);
+                        finalCommand.set(finalCommand.get().replaceFirst("!%" + replace + "%", String.valueOf(value)));
+                } else {
+                    MagicMenu.debug("Replacing: " + replace + " with default: " + defaultValue);
+                        finalCommand.set(finalCommand.get().replaceFirst("!%" + replace + "%", defaultValue));
+                }
+            }
+            MagicMenu.debug("Sending command: " + finalCommand.get());
+            session.sendCommand(finalCommand.get());
+
+            defaultValues.clear();
+            placeholders.clear();
+            completableFuture.complete(ResultType.SUCCESS);
+        });
+
+        connection.sendForm(formBuilder);
+        return completableFuture;
     }
 
-    enum RestultType {
+
+
+    enum ResultType {
         SUCCESS,
         FAILURE,
         CANCELLED
