@@ -22,8 +22,11 @@ public record Config(
             @Nullable List<String> allowedUsers,
 
             @JsonProperty("forms")
-            List<Form> forms
-        ) {
+            List<Form> forms,
+
+            @JsonProperty("commands")
+            List<CommandHolder> commands
+        ) implements holder {
 
         }
 
@@ -36,9 +39,6 @@ public record Config(
 
             @JsonProperty("buttons")
             List<Button> buttons,
-            // emote -> command
-            @JsonProperty("command")
-            CommandHolder command,
 
             @JsonProperty("allowed-users")
             List<String> allowedUsers
@@ -49,24 +49,22 @@ public record Config(
             @JsonProperty("name")
             @NonNull String name,
 
-            @JsonProperty("description")
-            String description,
-
             @JsonProperty("allowed-users")
             @Nullable List<String> allowedUsers,
 
             @JsonProperty("image-url")
             String imageUrl,
 
-            // emote -> form -> commands form -> command
-            @JsonProperty("commands")
-            List<CommandHolder> commandHolders,
-
             // emote -> form -> command
             // in case of a direct command.
-            @JsonProperty("command")
-            CommandHolder command
-        ) {
+            // multiple commands, in the edge case, that someone has multiple commands with different permissions.
+            @JsonProperty("commands")
+            List<CommandHolder> commands,
+
+            @JsonProperty("forms")
+            List<Form> forms
+        ) implements holder {
+
         }
 
         public record CommandHolder(
@@ -77,12 +75,16 @@ public record Config(
             @JsonProperty("command-name")
             String name,
 
-            @JsonProperty("image-url")
-            String imageUrl,
-
             @JsonProperty("run")
             @NonNull String command
         ) {
         }
 
+        public interface holder {
+            List<CommandHolder> commands();
+
+            default boolean hasCommands() {
+                return commands() != null && !commands().isEmpty();
+            }
+        }
 }

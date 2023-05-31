@@ -5,6 +5,7 @@ import net.onebeastchris.extension.magicmenu.config.Config;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 
 import java.util.List;
+import java.util.Stack;
 
 
 public class PlayerMenuHandler {
@@ -14,136 +15,143 @@ public class PlayerMenuHandler {
     // main emote definition to base on
     private final Config.EmoteDefinition emoteDefinition;
 
-    // storing the form we are currently on
-    private Config.Form formDefinition;
-
-    // storing the button we are currently on
-    private Config.Button button;
-
-    // storing the command we are currently on
-    private Config.CommandHolder commandHolder;
-
-    // storing the stage to go back to
-    // just the form/button/commandHolder isn't enough, since commands can be in both a form and a button.
-    enum Stage {
-        MAIN,
-        BUTTON,
-        NONE
-    }
-    private Stage stage = Stage.NONE;
+    private Stack<Object> stack = new Stack<>();
 
     public PlayerMenuHandler(GeyserConnection connection, Config.EmoteDefinition emoteDefinition) {
         this.emoteDefinition = emoteDefinition;
         this.username = connection.bedrockUsername();
-        defineMain(connection);
+        handle(emoteDefinition, connection);
     }
 
-    private void defineMain(GeyserConnection connection) {
-        for (Config.Form form : emoteDefinition.forms()) {
-            if (form.allowedUsers() != null) {
-                if (form.allowedUsers().contains(username)) {
-                    this.formDefinition = form;
-                    break;
-                }
+    private void handle(Object object, GeyserConnection connection) {
+        if (object instanceof Config.EmoteDefinition emoteDefinition) {
+            // stack.add(emoteDefinition); likely not needed.
+            if (checkForCommand(connection, emoteDefinition)) {
+                return;
             } else {
-                this.formDefinition = form;
-                break;
+                Config.Form form = null;
+                for (Config.Form form1 : emoteDefinition.forms()) {
+                    if (form1.allowedUsers() != null) {
+                        if (form1.allowedUsers().contains(username)) {
+                            form = form1;
+                            break;
+                        }
+                    } else {
+                        form = form1;
+                    }
+                }
+                if (form == null) {
+                    MagicMenu.getLogger().error("No form found for emote definition: "
+                            + emoteDefinition.emoteID()
+                            + " and player: " + username + "."
+                            + " This is a configuration issue: This emote id is accessible to this player, but has no form, or command to execute.");
+                    return;
+                }
+                handle(form, connection);
             }
-            MagicMenu.getLogger().warning("No form found for " + username + " in " + emoteDefinition.emoteID());
         }
 
-        // now that the main form for the player is found, send it
-        executeMain(connection);
+        if (object instanceof Config.Form form) {
+            stack.add(form);
+            // checking for buttons, or back.
+            MenuHandler.sendForm(connection, form).whenCompleteAsync((button, throwable) -> {
+                if (throwable != null) {
+                    // who tf knows, better be safer than sorry
+                    throwable.printStackTrace();
+                    return;
+                }
+
+                if (button == null) {
+                    goBack(connection);
+                    return;
+                }
+                handle(button, connection);
+            });
+            return;
+        }
+        if (object instanceof Config.Button button) {
+            stack.add(button);
+            if (checkForCommand(connection, button)) {
+                return;
+            }
+            if (button.forms() != null) {
+                Config.Form form = null;
+                for (Config.Form potentialForm : button.forms()) {
+                    if (potentialForm.allowedUsers() != null) {
+                        if (potentialForm.allowedUsers().contains(username)) {
+                            form = potentialForm;
+                            break;
+                        }
+                    } else {
+                        form = potentialForm;
+                    }
+                }
+                if (form == null) {
+                    MagicMenu.getLogger().error("No form found for button: "
+                            + button.name()
+                            + " and player: " + username + "."
+                            + " This is a configuration issue: This button is accessible to this player, but has no form, or command to execute.");
+                    return;
+                }
+                handle(form, connection);
+                return;
+            }
+            MagicMenu.debug("No command or form found for button: " + button.name() + " and player: " + username + ".");
+        }
+        if (object instanceof Config.CommandHolder commandHolder) {
+            stack.add(commandHolder);
+            MenuHandler.executeCommand(connection, commandHolder).whenCompleteAsync((resultType, throwable) -> {
+                if (throwable != null) {
+                    // who tf knows, better be safer than sorry
+                    throwable.printStackTrace();
+                    return;
+                }
+
+                MagicMenu.debug("result type is " + resultType);
+                switch (resultType) {
+                    case SUCCESS:
+                        break;
+                    case FAILURE:
+                        connection.sendMessage("§cAn error occurred while parsing this command!");
+                        break;
+                    case CANCELLED:
+                        goBack(connection);
+                        break;
+                }
+            });
+            return;
+        }
+        MagicMenu.getLogger().error("Unknown object type in handle(): " + object.getClass().getName());
+    }
+
+    private boolean checkForCommand(GeyserConnection connection, Object object) {
+        if (object instanceof Config.holder holder) {
+            // specifically, emote definition, and button
+            if (holder.hasCommands()) {
+                Config.CommandHolder command = null;
+                for (Config.CommandHolder commandHolder : holder.commands()) {
+                    if (commandHolder.allowedUsers() != null) {
+                        if (commandHolder.allowedUsers().contains(connection.bedrockUsername())) {
+                            command = commandHolder;
+                            break;
+                        }
+                    } else {
+                        command = commandHolder;
+                    }
+                }
+                stack.add(command);
+                handle(command, connection);
+                return true;
+            }
+            return false;
+        }
+        return false;
     }
 
     public void goBack(GeyserConnection connection) {
-        if (MagicMenu.getConfig().goBackOnClosed()) {
-            switch (stage) {
-                case MAIN -> executeMain(connection);
-                case BUTTON -> executeButton(connection);
-            }
+        if (MagicMenu.getConfig().goBackOnClosed() && stack.size() > 0) {
+            handle(stack.pop(), connection);
         }
-    }
-
-    private void executeMain(GeyserConnection connection) {
-        stage = Stage.NONE;
-        if (formDefinition.command() != null && hasPerms(formDefinition.allowedUsers(), username)) {
-            commandHolder = formDefinition.command();
-            executeCommand(connection);
-            // not able to go back, hence no stage setting.
-            return;
-        }
-
-        // checking for buttons, or back.
-        MenuHandler.mainForm(connection, formDefinition).whenCompleteAsync((button, throwable) -> {
-            if (throwable != null) {
-                // who tf knows, better be safer than sorry
-                throwable.printStackTrace();
-                return;
-            }
-
-            if (button == null) {
-                goBack(connection);
-                return;
-            }
-            this.button = button;
-            executeButton(connection);
-        });
-    }
-
-    private void executeButton(GeyserConnection connection){
-        MagicMenu.getLogger().info("executing button");
-        if (button == null) {
-            MagicMenu.getLogger().error("An error occurred while parsing button, is null when it shouldn't be.");
-            executeMain(connection);
-            return;
-        }
-
-        stage = Stage.MAIN;
-        MagicMenu.debug(button.toString());
-        if (button.command() != null) {
-            commandHolder = button.command();
-            executeCommand(connection);
-            return;
-        }
-        MenuHandler.showButtonForm(connection, button).whenCompleteAsync((commandHolder, throwable) -> {
-            if (throwable != null) {
-                // who tf knows, better be safer than sorry
-                throwable.printStackTrace();
-                return;
-            }
-
-            if (commandHolder == null) {
-                goBack(connection);
-                return;
-            }
-            MagicMenu.debug("command holder is " + commandHolder);
-            this.commandHolder = commandHolder;
-            stage = Stage.BUTTON;
-            executeCommand(connection);
-        });
-    }
-
-    public void executeCommand(GeyserConnection connection) {
-        MenuHandler.executeCommand(connection, commandHolder).whenCompleteAsync((resultType, throwable) -> {
-            if (throwable != null) {
-                // who tf knows, better be safer than sorry
-                throwable.printStackTrace();
-                return;
-            }
-
-            MagicMenu.getLogger().info("result type is " + resultType);
-            switch (resultType) {
-                case SUCCESS:
-                    break;
-                case FAILURE:
-                    connection.sendMessage("§cAn error occurred while parsing this command!");
-                    break;
-                case CANCELLED:
-                    goBack(connection);
-                    break;
-            }
-        });
     }
 
     public static boolean hasPerms(Object list, String userName) {

@@ -9,12 +9,17 @@ show-emotes: true
 # If this is set to true, closing a form will return to the previous form.
 go-back: true
 
+# Debug mode: This will spam the console.
+debug: false
+
 # Define your menus here. You can have as many as you want, but practically, not more than 4 - one for each emote.
 menus:
   # Enter the emote uuid here. Or, all for all emotes (not recommended). Take the uuid from here:
   # https://github.com/JustTalDevelops/bedrock-emotes
   # You can also set it to "all", this would mean that the menu would open for all emotes. You cannot have multiple "all" menus.
   - emote-uuid: all
+    # Enter the allowed users here. If you want to allow all users, remove "allowed-users" entirely
+    # if someone isnt allowed to use this menu, they will just emote normally.
     allowed-users:
       - onebeastchris
       - onebeastofchris

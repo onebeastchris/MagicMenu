@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 
 public class MenuHandler {
 
-    static CompletableFuture<Config.Button> mainForm(GeyserConnection connection, Config.Form formDefinition) {
+    static CompletableFuture<Config.Button> sendForm(GeyserConnection connection, Config.Form formDefinition) {
 
         Map<String, Config.Button> temp = new HashMap<>();
 
@@ -65,43 +65,6 @@ public class MenuHandler {
         return futureResult;
     }
 
-    static CompletableFuture<Config.CommandHolder> showButtonForm(GeyserConnection connection, Config.Button button) {
-
-        Map<String, Config.CommandHolder> temp = new HashMap<>();
-        SimpleForm.Builder simpleForm = SimpleForm.builder()
-                .title(button.name())
-                .content(button.description());
-
-        for (Config.CommandHolder commandHolder : button.commandHolders()) {
-            if (commandHolder.command().isEmpty()) {
-                MagicMenu.getLogger().error(commandHolder + " is invalid, has no command!");
-            } else if (PlayerMenuHandler.hasPerms(commandHolder.allowedUsers(), connection.bedrockUsername())) {
-                String name = commandHolder.name();
-                if (commandHolder.imageUrl() != null && !commandHolder.imageUrl().isEmpty()) {
-                    simpleForm.button(name, FormImage.Type.URL, commandHolder.imageUrl());
-                } else {
-                    simpleForm.button(name);
-                }
-                temp.put(name, commandHolder);
-            }
-        }
-
-        CompletableFuture<Config.CommandHolder> completableFuture = new CompletableFuture<>();
-
-        simpleForm.validResultHandler((buttonform, response) -> {
-            Config.CommandHolder holder = temp.get(response.clickedButton().text());
-            completableFuture.complete(holder);
-            temp.clear();
-        });
-
-        simpleForm.closedOrInvalidResultHandler((buttonform, response) -> {
-            temp.clear();
-            completableFuture.complete(null);
-        });
-        connection.sendForm(simpleForm);
-        return completableFuture;
-    }
-
     static CompletableFuture<ResultType> executeCommand(GeyserConnection connection, Config.CommandHolder commandHolder) {
         CompletableFuture<ResultType> completableFuture = new CompletableFuture<>();
         if (commandHolder.command().isEmpty()) {
@@ -121,24 +84,14 @@ public class MenuHandler {
         GeyserSession session = (GeyserSession) connection;
         String command = commandHolder.command();
 
-        if (!command.contains("%")) {
+        command = PlaceHolder.parsePlaceHolders(session, command);
+
+        // skip input placeholder if none are present
+        if (!command.contains("!%")) {
             session.sendCommand(command);
             completableFuture.complete(ResultType.SUCCESS);
             return completableFuture;
         }
-
-        command = command.replace("%username%", connection.javaUsername())
-                .replace("%xuid%", connection.xuid())
-                .replace("%uuid%", connection.javaUuid().toString())
-                .replace("%bedrockusername%", connection.bedrockUsername())
-                .replace("%device%", connection.inputMode().name())
-                .replace("%lang%", connection.languageCode())
-                .replace("%x%", String.valueOf(session.getPlayerEntity().getPosition().getX()))
-                .replace("%y%", String.valueOf(session.getPlayerEntity().getPosition().getY()))
-                .replace("%z%", String.valueOf(session.getPlayerEntity().getPosition().getZ()))
-                .replace("%position%", Math.floor(session.getPlayerEntity().getPosition().getX())
-                        + " " + Math.floor(session.getPlayerEntity().getPosition().getY())
-                        + " " + Math.floor(session.getPlayerEntity().getPosition().getZ()));
 
         Pattern pattern_input = Pattern.compile("!%(.*?)%");
         Matcher matcher = pattern_input.matcher(command);
@@ -239,7 +192,7 @@ public class MenuHandler {
         formBuilder.closedOrInvalidResultHandler((form, response) -> {
             defaultValues.clear();
             placeholders.clear();
-            MagicMenu.getLogger().info("Setting cancelled");
+            MagicMenu.debug("Form closed or invalid, cancelling command " + finalCommand.get());
             completableFuture.complete(ResultType.CANCELLED);
         });
 
@@ -281,8 +234,6 @@ public class MenuHandler {
         connection.sendForm(formBuilder);
         return completableFuture;
     }
-
-
 
     enum ResultType {
         SUCCESS,
