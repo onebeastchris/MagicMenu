@@ -48,6 +48,7 @@ public class PlayerMenuHandler {
                     return;
                 }
                 handle(form, connection);
+                return;
             }
         }
 

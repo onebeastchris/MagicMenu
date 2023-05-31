@@ -26,42 +26,42 @@ menus:
       - someotheraccount
     # Enter the title/description of the menu here; description is optional.
     forms:
-      - form-title: Example-form
-        form-description: You can set a description here!
+      - form-title: "Example-form"
+        form-description: "You can set a description here!"
 
         # Configure the buttons here.
         buttons:
           # name/description of the button. Here, we define a command, so clicking the button will run the command.
           - name: o.o
             forms:
-              - form-title: Sub-form!
+              - form-title: "Sub-form!"
                 buttons:
-                  - name: %position%
+                  - name: "%position%"
                     commands:
-                      - command-name: Where am I?
-                        run: say %position%
+                      - command-name: "Where am I?"
+                        run: "say %position%"
 
           # same as above - but with an image for the button!
-          - name: %position%
+          - name: "%position%"
             allowed-users:
               - onebeastchris
               - onebeastofchris
             commands:
-              - command-name: Give %username% an apple!
-                run: give %username% apple 1
+              - command-name: "Give %username% an apple!"
+                run: "give %username% apple 1"
 
           # You can also open a menu with more commands
           # buttons can have an image next to them
-          - name: §2 Hey %username%, check this out!
+          - name: "§2 Hey %username%, check this out!"
             commands:
-              - command-name: Dropdown & slider demo
-                run: say Dropdown = !%dropdown:Choose a dropdown, default, default, just, some, more, options% !%slider:Choose a slider, 0, 10, 1, 5%
-              - command-name: Step-slider and input demo
-                run: say This is a step-slider value, !%step-slider:Choose a step slider, 0, 10, 1, 2, 3, 4, 5% and an input !%input:Enter a xuid, %xuid%%
-              - command-name: Toggle & placeholder demo
+              - command-name: "Dropdown & slider demo"
+                run: "say Dropdown = !%dropdown:Choose a dropdown, default, default, just, some, more, options% !%slider:Choose a slider, 0, 10, 1, 5%"
+              - command-name: "Step-slider and input demo"
+                run: "say This is a step-slider value, !%step-slider:Choose a step slider, 0, 10, 1, 2, 3, 4, 5% and an input !%input:Enter a xuid, %xuid%%"
+              - command-name: "Toggle & placeholder demo"
                 run: "say This is a boolean: %toggle:Choose a toggle, true%"
 
-          - name: Geyser Commands
+          - name: "Geyser Commands"
             image-url: "https://avatars.githubusercontent.com/u/52673035?s=200&v=4"
             commands:
               - command-name: advancements
@@ -77,12 +77,12 @@ menus:
         # note here: we set a specific emote uuid (from https://github.com/JustTalDevelops/bedrock-emotes), it will override the "all" menu.
   - emote-uuid: 6d9f24c0-6246-4c92-8169-4648d1981cbb
     commands:
-      - command-name: gamemode
-        run: gamemode !%dropdown:Choose a gamemode, creative, creative, survival, adventure, spectator%
+      - command-name: "gamemode"
+        run: "gamemode !%dropdown:Choose a gamemode, creative, creative, survival, adventure, spectator%"
         allowed-users:
             - onebeastchris
             - onebeastofchris
             - someotheraccount
-      - command-name: say
-        run: say !%input:Enter a message, test message% %position% %player%
+      - command-name: "say"
+        run: "say !%input:Enter a message, test message% %position% %player%"
 
