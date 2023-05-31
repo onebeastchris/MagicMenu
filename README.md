@@ -5,7 +5,7 @@ Fully configurable! Define multiple forms (different ones for different players)
 
 ### This is an extension for Geyser; NOT a plugin/mod. To install it, drop the .jar file in Geyser's extensions folder.
 
-For help with this project: https://discord.gg/NrUwZuXD 
+For help with this project: https://discord.gg/WdmrRHRJhS
 
 Download available soon in the releases tab.
 
