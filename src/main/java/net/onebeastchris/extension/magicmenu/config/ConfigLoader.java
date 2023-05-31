@@ -1,11 +1,9 @@
-package net.onebeastchris.extension.emotecommandmenu.config;
+package net.onebeastchris.extension.magicmenu.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.extension.ExtensionLogger;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -18,7 +16,8 @@ import java.nio.file.Files;
 import java.util.Collections;
 
 public class ConfigLoader {
-    public static <T> T load(Extension extension, Class<?> extensionClass, Class<T> configClass, @NonNull ExtensionLogger logger) {
+
+    public static <T> T load(Extension extension, Class<?> extensionClass, Class<T> configClass) {
         File configFile = extension.dataFolder().resolve("config.yml").toFile();
 
         // Ensure the data folder exists

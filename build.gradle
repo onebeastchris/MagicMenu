@@ -3,7 +3,7 @@ plugins {
     id 'java'
 }
 
-group 'net.onebeastchris.extension.emotecommandmenu'
+group 'net.onebeastchris.extension.magicmenu'
 version '1.0.0'
 
 repositories {
@@ -13,6 +13,15 @@ repositories {
     }
     maven {
         url 'https://repo.opencollab.dev/maven-releases'
+    }
+    maven {
+        url 'https://jitpack.io'
+    }
+    maven {
+        url 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
+    maven {
+        url 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
     }
     mavenLocal()
 }
@@ -24,15 +33,12 @@ dependencies {
     // Include other dependencies here - e.g. for configuration.
     compileOnly('org.geysermc.geyser:core:2.1.0-SNAPSHOT') {
         exclude group: 'io.netty'
-        exclude(group: 'com.github.GeyserMC')
-        exclude(group: 'net.kyori')
     }
 
-    implementation('com.fasterxml.jackson.core:jackson-databind:2.15.1')
+    //implementation('com.fasterxml.jackson.core:jackson-databind:2.15.1')
     implementation('com.fasterxml.jackson.core:jackson-annotations:2.15.1')
     implementation('com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.1')
     implementation('com.fasterxml.jackson.core:jackson-core:2.15.1')
-    implementation('org.yaml:snakeyaml:2.0')
 
 
 }

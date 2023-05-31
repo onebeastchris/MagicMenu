@@ -9,64 +9,75 @@ show-emotes: true
 # If this is set to true, closing a form will return to the previous form.
 go-back: true
 
-#Define your menus here. You can have as many as you want, but practically, not more than 4 - one for each emote.
+# Define your menus here. You can have as many as you want, but practically, not more than 4 - one for each emote.
 menus:
   # Enter the emote uuid here. Or, all for all emotes (not recommended). Take the uuid from here:
   # https://github.com/JustTalDevelops/bedrock-emotes
   # You can also set it to "all", this would mean that the menu would open for all emotes. You cannot have multiple "all" menus.
   - emote-uuid: all
+    allowed-users:
+      - onebeastchris
+      - onebeastofchris
+      - someotheraccount
     # Enter the title/description of the menu here; description is optional.
-    form-title: Form1
-    form-description: Form1 description
+    forms:
+      - form-title: Form1
+        form-description: Form1 description
 
-    # Configure the buttons here.
-    buttons:
-      # name/description of the button. Here, we define a command, so clicking the button will run the command.
-      - name: Button1
-        description: Button1 description
-        command:
-          command-name: Command1
-          run: say Command1
+        # Configure the buttons here.
+        buttons:
+          # name/description of the button. Here, we define a command, so clicking the button will run the command.
+          - name: Button1
+            description: Button1 description
+            command:
+              command-name: Command1
+              run: say Command1
 
-      # same as above - but with an image for the button!
-      - name: Button2
-        description: Button2 description
-        image-url:
-        command:
-          command-name: Command2
-          run: say !%input:name to enter,hi% !%toggle:randomtest,true%
+          # same as above - but with an image for the button!
+          - name: Button2
+            description: Button2 description
+            allowed-users:
+              - onebeastchris
+              - onebeastofchris
+            command:
+              command-name: Command2
+              run: say !%input:name to enter, hi% !%toggle:randomtest, true%
 
-      # You can also open a menu with more commands
-      # buttons can have an image next to them
-      - name: say plugin
-        description: §2say commands
-        image-url:
-        commands:
-          - command-name: say hi
-            image-url:
-            run: say !%dropdown:Choose a dropdown,default,default,just,some,more,options% !%slider:Choose a slider, 0, 10, 1, 5%
-          - command-name: say not hi
-            image-url:
-            run: say !%step-slider:Choose a step slider, 0,10,1,2,3,4,5% !%input:Enter a number, 0%
-          - command-name: gamemode
-            image-url:
-            run: gamemode !%dropdown:Choose a gamemode, creative, creative, survival, adventure, spectator%
-      - name: Geyser Commands
-        description: Commands from Geyser
-        image-url: https://avatars.githubusercontent.com/u/52673035?s=200&v=4
-        commands:
-          - command-name: advancements
-            run: geyser advancements
-          - command-name: offhand
-            run: geyser offhand
-          - command-name: statistics
-            run: geyser statistics
-          - command-name: tooltips
-            run: geyser tooltips
+          # You can also open a menu with more commands
+          # buttons can have an image next to them
+          - name: say plugin
+            description: §2say commands
+            image-url: ""
+            commands:
+              - command-name: say hi
+                run: say !%dropdown:Choose a dropdown, default, default, just, some, more, options% !%slider:Choose a slider, 0, 10, 1, 5%
+              - command-name: say not hi
+                run: say !%step-slider:Choose a step slider, 0, 10, 1, 2, 3, 4, 5% !%input:Enter a number, 0%
+              - command-name: gamemode
+                run: gamemode !%dropdown:Choose a gamemode, creative, creative, survival, adventure, spectator%
 
-    # You can also run a command directly, without opening a menu.
-    # note here: we set a specific emote uuid (from https://github.com/JustTalDevelops/bedrock-emotes), it will override the "all" menu.
+          - name: Geyser Commands
+            description: Commands from Geyser
+            image-url: "https://avatars.githubusercontent.com/u/52673035?s=200&v=4"
+            commands:
+              - command-name: advancements
+                run: geyser advancements
+              - command-name: offhand
+                run: geyser offhand
+              - command-name: statistics
+                run: geyser statistics
+              - command-name: tooltips
+                run: geyser tooltips
+
+        # You can also run a command directly, without opening a menu.
+        # note here: we set a specific emote uuid (from https://github.com/JustTalDevelops/bedrock-emotes), it will override the "all" menu.
   - emote-uuid: 6d9f24c0-6246-4c92-8169-4648d1981cbb
-    command:
-      command-name: Command4
-      run: say Command4
+    forms:
+      - form-title: Form1
+        form-description: Form1 description
+        buttons:
+          - name: Button1
+            description: Button1 description
+            command:
+              command-name: Command1
+              run: say Command1

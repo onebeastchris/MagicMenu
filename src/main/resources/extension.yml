@@ -1,6 +1,6 @@
-id: emotecommandmenu
-name: EmoteCommandMenu
-main: net.onebeastchris.extension.emotecommandmenu.EmoteCommandMenu
+id: magicmenu
+name: MagicMenu
+main: net.onebeastchris.extension.magicmenu.MagicMenu
 api: 1.0.0
 version: 1.0.0
 authors: [onebeastchris]
