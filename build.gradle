@@ -40,16 +40,14 @@ dependencies {
     implementation('com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.1')
     implementation('com.fasterxml.jackson.core:jackson-core:2.15.1')
 
-
 }
 
 jar {
-    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    archiveFileName = 'MagicMenu-1.0.jar'
 
-    archiveFileName = 'emote-command-menu-extension.jar'
-
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    // Include dependencies in the JAR
+    from(configurations.runtimeClasspath.getFiles()) {
+        into 'libs'
     }
 }
 
