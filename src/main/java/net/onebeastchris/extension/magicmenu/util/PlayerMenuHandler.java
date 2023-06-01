@@ -12,7 +12,7 @@ public class PlayerMenuHandler {
 
     private final String username;
 
-    private Stack<Object> stack = new Stack<>();
+    private final Stack<Object> stack = new Stack<>();
 
     public PlayerMenuHandler(GeyserConnection connection, Config.EmoteDefinition emoteDefinition) {
         // main emote definition to base on

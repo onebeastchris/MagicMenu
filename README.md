@@ -13,12 +13,17 @@ Download available soon in the releases tab.
 
 Configuration:
 
-There are main "elements":
+#### IMPORTANT:
+- The config is in YAML format, so make sure you don't mess up the indentation.
+- This will only work if 'emote-offhand-workaround' in Geysers config is set to either emotes-and-offhand or disabled.
 
+There are main "elements":
 - emote definitions: to run show forms/commands for different emotes
 - forms: to show different buttons, with or without images
 - buttons: When clicked, they can execute commands, or show another form
 - command holders: Hold the command, the name for it, the users allowed to run it, and the command to run them (with placeholder/player input placeholders support)
+
+For more info on how to set up the config, check out the default config below.
 
 List of all available [Placeholders](https://github.com/onebeastchris/MagicMenu/blob/master/setup.md) <br>
 The [Default/Example Config](https://github.com/onebeastchris/MagicMenu/blob/master/src/main/resources/config.yml) for reference
