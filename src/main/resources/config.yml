@@ -23,7 +23,6 @@ menus:
     # Enter the allowed users here. If you want to allow all users, remove "allowed-users" entirely
     # if someone isn't allowed to use this menu, they will just emote normally.
     allowed-users:
-      - onebeastchris
       - onebeastofchris
       - someotheraccount
     # Enter the title/description of the menu here; description is optional.
@@ -117,11 +116,10 @@ menus:
       - command-name: "gamemode"
         run: "gamemode !%dropdown:Choose a gamemode, creative, creative, survival, adventure, spectator%"
         allowed-users:
-            - onebeastchris
             - onebeastofchris
             - someotheraccount
 
-      # As the command below is only accessible to onebeastchris, onebeastofchris and someotheraccount, the command above will only run for them.
+      # As the command above is only accessible to onebeastofchris and someotheraccount, the command above will only run for them.
       # The command below has no set allowed users, therefore, it will run for everyone else.
       # One button cannot run multiple commands.
       - command-name: "say"

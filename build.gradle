@@ -36,14 +36,13 @@ dependencies {
         exclude group: 'io.netty'
     }
 
-    implementation('com.fasterxml.jackson.core:jackson-annotations:2.15.1')
-    implementation('com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.1')
-    implementation('com.fasterxml.jackson.core:jackson-core:2.15.1')
+    api('com.fasterxml.jackson.core:jackson-annotations:2.14.2')
+    api('com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.14.2')
+    api('com.fasterxml.jackson.core:jackson-core:2.14.2')
 }
 
 jar {
-    archiveFileName = 'MagicMenu-unshaded-1.0.jar'
-
+    archiveClassifier.set("unshaded")
 }
 
 // Output to build/libs/shadow.jar
@@ -52,6 +51,7 @@ shadowJar {
     archiveClassifier.set('')
 
     relocate('com.fasterxml.jackson', 'net.onebeastchris.extension.magicmenu.jackson')
+    relocate('org.yaml', 'net.onebeastchris.extension.magicmenu.yaml')
 }
 
 java {

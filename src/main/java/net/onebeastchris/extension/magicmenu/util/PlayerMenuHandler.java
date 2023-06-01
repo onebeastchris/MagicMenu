@@ -47,7 +47,7 @@ public class PlayerMenuHandler {
         }
 
         if (object instanceof Config.Form form) {
-            MagicMenu.getLogger().error("Adding form: " + form.title() + " to stack.");
+            MagicMenu.debug("Adding form: " + form.title() + " to stack.");
             stack.add(form);
             // checking for buttons, or back.
             MenuHandler.sendForm(connection, form).whenCompleteAsync((button, throwable) -> {
@@ -94,7 +94,7 @@ public class PlayerMenuHandler {
             MagicMenu.debug("No command or form found for button: " + button.name() + " and player: " + username + ".");
         }
         if (object instanceof Config.CommandHolder commandHolder) {
-            MagicMenu.getLogger().error("Adding command: " + commandHolder.command() + " to stack.");
+            MagicMenu.debug("Adding command: " + commandHolder.command() + " to stack.");
             stack.add(commandHolder);
             MenuHandler.executeCommand(connection, commandHolder).whenCompleteAsync((resultType, throwable) -> {
                 if (throwable != null) {
@@ -144,14 +144,14 @@ public class PlayerMenuHandler {
     }
 
     public void goBack(GeyserConnection connection) {
-        MagicMenu.getLogger().debug("Going back? " + MagicMenu.getConfig().goBackOnClosed() + " stack size: " + stack.size());
+        MagicMenu.debug("Going back? " + MagicMenu.getConfig().goBackOnClosed() + " stack size: " + stack.size());
         if (MagicMenu.getConfig().goBackOnClosed()) {
             var ignored = stack.pop(); // last element is what we were on.
-            MagicMenu.getLogger().debug("Current: " + ignored.getClass().getName());
+            MagicMenu.debug("Current: " + ignored.getClass().getName());
 
             if (!stack.isEmpty()) {
                 handle(stack.pop(), connection);
-                MagicMenu.getLogger().debug("NEW Stack size: " + stack.size());
+                MagicMenu.debug("NEW Stack size: " + stack.size());
             } else {
                 MagicMenu.debug("Stack is empty.");
             }

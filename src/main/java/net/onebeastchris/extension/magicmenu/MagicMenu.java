@@ -11,7 +11,6 @@ import org.geysermc.geyser.api.extension.ExtensionLogger;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import static net.onebeastchris.extension.magicmenu.util.PlayerMenuHandler.hasPerms;
 

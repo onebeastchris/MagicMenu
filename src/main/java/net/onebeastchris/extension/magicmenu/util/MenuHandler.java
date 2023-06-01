@@ -233,7 +233,7 @@ public class MenuHandler {
 
         MagicMenu.debug("Sending command: " + command);
         if (session.getGeyser().getPlatformType() == PlatformType.STANDALONE &&
-                session.getGeyser().commandManager().runCommand(session, command.substring(0))) {
+                session.getGeyser().commandManager().runCommand(session, command)) {
             return;
         }
         session.sendCommand(command);
