@@ -3,20 +3,22 @@
 A Geyser Extension that allows you to run commnds by using an emote. Has support for various placeholders, and allows for user input on parts of the commands.
 Fully configurable! Define multiple forms (different ones for different players), chain them to one another, and even add images to buttons so they're more lively!
 
+Showcase: 
+https://www.youtube.com/watch?v=_n-IL6YiIbQ
+
 ### This is an extension for Geyser; NOT a plugin/mod. To install it, drop the .jar file in Geyser's extensions folder.
 
 For help with this project: https://discord.gg/WdmrRHRJhS
 
-Download available soon in the releases tab.
+Download available in the releases tab.
 
 ## DISCLAIMER: While this project is made to work with Geyser (literally a geyser extension), it is not an official one - for help, ask in issues here or on the linked discord.
-
-Configuration:
 
 #### IMPORTANT:
 - The config is in YAML format, so make sure you don't mess up the indentation.
 - This will only work if 'emote-offhand-workaround' in Geysers config is set to either emotes-and-offhand or disabled.
 
+#### Configuration:
 There are main "elements":
 - emote definitions: to run show forms/commands for different emotes
 - forms: to show different buttons, with or without images
