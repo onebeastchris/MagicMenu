@@ -59,7 +59,6 @@ public record Config(
             // multiple commands, in the edge case, that someone has multiple commands with different permissions.
             @JsonProperty("commands")
             List<CommandHolder> commands,
-
             @JsonProperty("forms")
             List<Form> forms
         ) implements holder {

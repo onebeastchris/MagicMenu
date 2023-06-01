@@ -12,23 +12,17 @@ public class PlayerMenuHandler {
 
     private final String username;
 
-    // main emote definition to base on
-    private final Config.EmoteDefinition emoteDefinition;
-
-    private Stack<Object> stack = new Stack<>();
+    private final Stack<Object> stack = new Stack<>();
 
     public PlayerMenuHandler(GeyserConnection connection, Config.EmoteDefinition emoteDefinition) {
-        this.emoteDefinition = emoteDefinition;
+        // main emote definition to base on
         this.username = connection.bedrockUsername();
         handle(emoteDefinition, connection);
     }
 
     private void handle(Object object, GeyserConnection connection) {
         if (object instanceof Config.EmoteDefinition emoteDefinition) {
-            // stack.add(emoteDefinition); likely not needed.
-            if (checkForCommand(connection, emoteDefinition)) {
-                return;
-            } else {
+            if (!checkForCommand(connection, emoteDefinition)) {
                 Config.Form form = null;
                 for (Config.Form form1 : emoteDefinition.forms()) {
                     if (form1.allowedUsers() != null) {
@@ -48,8 +42,8 @@ public class PlayerMenuHandler {
                     return;
                 }
                 handle(form, connection);
-                return;
             }
+            return;
         }
 
         if (object instanceof Config.Form form) {
@@ -150,8 +144,12 @@ public class PlayerMenuHandler {
     }
 
     public void goBack(GeyserConnection connection) {
-        if (MagicMenu.getConfig().goBackOnClosed() && stack.size() > 0) {
-            handle(stack.pop(), connection);
+        if (MagicMenu.getConfig().goBackOnClosed()) {
+            var back = stack.pop();
+            MagicMenu.debug("Going back to " + back.getClass().getName());
+            MagicMenu.debug(back.toString());
+            MagicMenu.debug(stack.toString());
+            handle(back, connection);
         }
     }
 

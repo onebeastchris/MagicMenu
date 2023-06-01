@@ -11,6 +11,7 @@ import org.geysermc.geyser.api.extension.ExtensionLogger;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static net.onebeastchris.extension.magicmenu.util.PlayerMenuHandler.hasPerms;
 
@@ -37,6 +38,11 @@ public class MagicMenu implements Extension {
         try {
             config = ConfigLoader.load(this, MagicMenu.class, Config.class);
             assert config != null;
+
+            if (!config.version().equals("1.0")) {
+                logger().error("Config version is not up to date! Please update your config!");
+                disable();
+            }
 
             for (Config.EmoteDefinition formDefinition : config.emoteDefinitions()) {
                 if (formDefinition.emoteID().equals("all")) {

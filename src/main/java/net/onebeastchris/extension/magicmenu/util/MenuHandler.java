@@ -2,6 +2,7 @@ package net.onebeastchris.extension.magicmenu.util;
 
 import net.onebeastchris.extension.magicmenu.MagicMenu;
 import net.onebeastchris.extension.magicmenu.config.Config;
+import org.geysermc.common.PlatformType;
 import org.geysermc.cumulus.component.Component;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.component.StepSliderComponent;
@@ -56,7 +57,7 @@ public class MenuHandler {
             futureResult.complete(button);
         });
 
-        simpleForm.invalidResultHandler((form, response) -> {
+        simpleForm.closedOrInvalidResultHandler((form, response) -> {
             MagicMenu.debug("Invalid result for " + connection.bedrockUsername() + " in form " + formDefinition.title());
             temp.clear();
             futureResult.complete(null);
@@ -82,12 +83,11 @@ public class MenuHandler {
             return completableFuture;
         }
 
-        GeyserSession session = (GeyserSession) connection;
-        String command = PlaceHolder.parsePlaceHolders(session, commandHolder.command());
+        String command = PlaceHolder.parsePlaceHolders(connection, commandHolder.command());
 
         // skip input placeholder if none are present
         if (!command.contains("!%")) {
-            session.sendCommand(command);
+            sendCommand(connection, command);
             completableFuture.complete(ResultType.SUCCESS);
             return completableFuture;
         }
@@ -103,13 +103,14 @@ public class MenuHandler {
         }
 
         if (placeholders.isEmpty()) {
-            session.sendCommand(command);
+            sendCommand(connection, command);
             completableFuture.complete(ResultType.SUCCESS);
             return completableFuture;
         }
 
+        String name = PlaceHolder.parsePlaceHolders(connection, commandHolder.name());
         CustomForm.Builder formBuilder = CustomForm.builder()
-                .title(commandHolder.name());
+                .title(name);
 
         for (String placeholder : placeholders) {
             String[] splitString = placeholder.split(":");
@@ -120,7 +121,7 @@ public class MenuHandler {
             switch (type) {
                 case "input" -> {
                     if (options.length < 2) {
-                        MagicMenu.getLogger().error("Invalid input placeholder: " + placeholder + " in " + commandHolder.name());
+                        MagicMenu.getLogger().error("Invalid input placeholder: " + placeholder + " in " + name);
                         completableFuture.complete(ResultType.FAILURE);
                         return completableFuture;
                     }
@@ -129,7 +130,7 @@ public class MenuHandler {
                 }
                 case "toggle" -> {
                     if (options.length < 2) {
-                        MagicMenu.getLogger().error("Invalid toggle placeholder: " + placeholder + " in " + commandHolder.name());
+                        MagicMenu.getLogger().error("Invalid toggle placeholder: " + placeholder + " in " + name);
                         completableFuture.complete(ResultType.FAILURE);
                         return completableFuture;
                     }
@@ -139,26 +140,18 @@ public class MenuHandler {
                 }
                 case "dropdown" -> {
                     if (options.length < 4) {
-                        MagicMenu.getLogger().error("Invalid dropdown placeholder: " + placeholder + " in " + commandHolder.name());
+                        MagicMenu.getLogger().error("Invalid dropdown placeholder: " + placeholder + " in " + name);
                         completableFuture.complete(ResultType.FAILURE);
                         return completableFuture;
                     }
                     String dropdowndefault = options[1];
                     defaultValues.add(dropdowndefault);
-                    int index = 0;
                     String[] dropdownOptions = Arrays.copyOfRange(options, 2, options.length);
-                    // Find the index of the default value
-                    for (int i = 0; i < dropdownOptions.length; i++) {
-                        if (options[i].equals(dropdowndefault)) {
-                            index = i;
-                            break;
-                        }
-                    }
-                    formBuilder.dropdown(options[0], index, dropdownOptions);
+                    formBuilder.dropdown(options[0], getIndex(dropdownOptions, dropdowndefault), dropdownOptions);
                 }
                 case "slider" -> {
                     if (options.length < 5) {
-                        MagicMenu.getLogger().error("Invalid slider placeholder: " + placeholder + " in " + commandHolder.name());
+                        MagicMenu.getLogger().error("Invalid slider placeholder: " + placeholder + " in " + name);
                         completableFuture.complete(ResultType.FAILURE);
                         return completableFuture;
                     }
@@ -176,12 +169,14 @@ public class MenuHandler {
                 }
                 case "step-slider" -> {
                     if (options.length < 1) {
-                        MagicMenu.getLogger().error("Invalid slider placeholder: " + placeholder + " in " + commandHolder.name());
+                        MagicMenu.getLogger().error("Invalid slider placeholder: " + placeholder + " in " + name);
                         completableFuture.complete(ResultType.FAILURE);
                         return completableFuture;
                     }
-                    defaultValues.add(options[1]);
-                    formBuilder.stepSlider(options[0], Integer.parseInt(options[1].trim()), Arrays.copyOfRange(options, 2, options.length));
+                    String stepSliderDefault = options[1];
+                    defaultValues.add(stepSliderDefault);
+                    String[] stepSliderOptions = Arrays.copyOfRange(options, 2, options.length);
+                    formBuilder.stepSlider(options[0], getIndex(stepSliderOptions, stepSliderDefault), stepSliderOptions);
                 }
             }
         }
@@ -222,8 +217,7 @@ public class MenuHandler {
                         finalCommand.set(finalCommand.get().replaceFirst("!%" + replace + "%", defaultValue));
                 }
             }
-            MagicMenu.debug("Sending command: " + finalCommand.get());
-            session.sendCommand(finalCommand.get());
+            sendCommand(connection, finalCommand.get());
 
             defaultValues.clear();
             placeholders.clear();
@@ -234,9 +228,30 @@ public class MenuHandler {
         return completableFuture;
     }
 
+    private static void sendCommand(GeyserConnection connection, String command) {
+        GeyserSession session = (GeyserSession) connection;
+
+        MagicMenu.debug("Sending command: " + command);
+        if (session.getGeyser().getPlatformType() == PlatformType.STANDALONE &&
+                session.getGeyser().commandManager().runCommand(session, command.substring(0))) {
+            return;
+        }
+        session.sendCommand(command);
+    }
+
     enum ResultType {
         SUCCESS,
         FAILURE,
         CANCELLED
+    }
+
+    private static int getIndex(String[] args, String arg) {
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals(arg)) {
+                return i;
+            }
+        }
+        MagicMenu.getLogger().warning("Could not find default argument: " + arg + " in dropdown/stepslider placeholders: " + Arrays.toString(args));
+        return 0;
     }
 }

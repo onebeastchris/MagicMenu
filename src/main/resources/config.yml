@@ -1,4 +1,6 @@
 # CommandManagerExtension config file
+# See https://github.com/onebeastchris/MagicMenu/blob/master/setup.md for all placeholders
+# https://github.com/onebeastchris/MagicMenu/blob/master/src/main/resources/config.yml for the default config
 
 # config version - do not change this.
 config-version: 1.0
@@ -31,21 +33,19 @@ menus:
 
         # Configure the buttons here.
         buttons:
-          # name/description of the button. Here, we define a command, so clicking the button will run the command.
-          - name: o.o
-            forms:
-              - form-title: "Sub-form!"
-                buttons:
-                  - name: "%position%"
-                    commands:
-                      - command-name: "Where am I?"
-                        run: "say %position%"
-
-          # same as above - but with an image for the button!
-          - name: "%position%"
+          # name of the button. Here, we define a command, so clicking the button will run the command.
+          - name: "Say something o.o"
+            commands:
+              - command-name: "Say something"
+                run: "say !%input:Enter a message, test message% sent by %username%"
+          # Similar as above - but with
+          # 1. a placeholder in the name, and
+          # 2. allowed users for the button! (xbox usernames, no prefix)
+          # Here: "%username%" is replaced with the java username of the player
+          - name: "Give %username% an apple!"
             allowed-users:
-              - onebeastchris
               - onebeastofchris
+              - totallyavalidxboxusername
             commands:
               - command-name: "Give %username% an apple!"
                 run: "give %username% apple 1"
@@ -53,28 +53,65 @@ menus:
           # You can also open a menu with more commands
           # buttons can have an image next to them
           - name: "§2 Hey %username%, check this out!"
-            commands:
-              - command-name: "Dropdown & slider demo"
-                run: "say Dropdown = !%dropdown:Choose a dropdown, default, default, just, some, more, options% !%slider:Choose a slider, 0, 10, 1, 5%"
-              - command-name: "Step-slider and input demo"
-                run: "say This is a step-slider value, !%step-slider:Choose a step slider, 0, 10, 1, 2, 3, 4, 5% and an input !%input:Enter a xuid, %xuid%%"
-              - command-name: "Toggle & placeholder demo"
-                run: "say This is a boolean: %toggle:Choose a toggle, true%"
+            image-url:
+            forms:
+              - form-title: "Placeholders demo section"
+                form-description: "This is a demo of some of the placeholders you can use!"
+                buttons:
+                  - name: "Position: %position%"
+                    commands:
+                      - command-name: "Position"
+                        run: "say this is my position: %position%"
+                  - name: "Username: %username%"
+                    commands:
+                      - command-name: "Username"
+                        run: "say sent by %username%"
+                  - name: "Dropdown & slider demo"
+                    commands:
+                      - command-name: "Dropdown & slider demo"
+                        run: "say Dropdown: !%dropdown:Choose a dropdown, default, default, just, some, more, options%, slider: !%slider:Choose a slider, 0, 10, 1, 5%"
+                  - name: "Step-slider and input demo"
+                    commands:
+                      - command-name: "Step-slider and input demo"
+                        run: "say This is a step-slider value, !%step-slider:Choose a step slider, 0, 10, 1, 2, 3, 4, 5% and an input !%input:Enter a xuid, %xuid%%"
+                  - name: "Toggle demo"
+                    commands:
+                      - command-name: "Toggle demo"
+                        run: "say This is a boolean: !%toggle:Choose a toggle, true%"
 
           - name: "Geyser Commands"
             image-url: "https://avatars.githubusercontent.com/u/52673035?s=200&v=4"
-            commands:
-              - command-name: advancements
-                run: geyser advancements
-              - command-name: offhand
-                run: geyser offhand
-              - command-name: statistics
-                run: geyser statistics
-              - command-name: tooltips
-                run: geyser tooltips
+            forms:
+              - form-title: "Geyser Commands"
+                form-description: "This is a demo of some of the Geyser commands you can use!"
+                buttons:
+                  - name: "statistics"
+                    commands:
+                      - command-name: "geyser statistics"
+                        run: "geyser statistics"
+                  - name: "offhand"
+                    commands:
+                      - command-name: "geyser offhand"
+                        run: "geyser offhand"
+                  - name: "tooltips"
+                    commands:
+                      - command-name: "geyser tooltips"
+                        run: "geyser tooltips"
+                  - name: "advancements"
+                    commands:
+                      - command-name: "geyser advancements"
+                        run: "geyser advancements"
+                  - name: "dump"
+                    commands:
+                      - command-name: "geyser dump"
+                        run: "geyser dump"
+                        allowed-users:
+                          - onebeastchris
+                          - onebeastofchris
+                          - someotheraccount
 
-        # You can also run a command directly, without opening a menu.
-        # note here: we set a specific emote uuid (from https://github.com/JustTalDevelops/bedrock-emotes), it will override the "all" menu.
+  # You can also run a command directly, without opening a menu.
+  # note here: we set a specific emote uuid (from https://github.com/JustTalDevelops/bedrock-emotes), it will override the "all" menu.
   - emote-uuid: 6d9f24c0-6246-4c92-8169-4648d1981cbb
     commands:
       - command-name: "gamemode"
@@ -83,6 +120,10 @@ menus:
             - onebeastchris
             - onebeastofchris
             - someotheraccount
+
+      # As the command below is only accessible to onebeastchris, onebeastofchris and someotheraccount, the command above will only run for them.
+      # The command below has no set allowed users, therefore, it will run for everyone else.
+      # One button cannot run multiple commands.
       - command-name: "say"
-        run: "say !%input:Enter a message, test message% %position% %player%"
+        run: "say !%input:Enter a message, test message% %position% %username%"
 

@@ -54,6 +54,7 @@ public class ConfigLoader {
                     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                     .disable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES)
                     .disable(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES)
+                    .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
                     .readValue(configFile, configClass);
         } catch (IOException e) {
             extension.logger().error("Failed to load config", e);
