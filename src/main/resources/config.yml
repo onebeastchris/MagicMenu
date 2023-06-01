@@ -12,7 +12,7 @@ show-emotes: true
 go-back: true
 
 # Debug mode: This will spam the console.
-debug: true
+debug: false
 
 # Define your menus here. You can have as many as you want, but practically, not more than 4 - one for each emote.
 menus:
@@ -73,7 +73,7 @@ menus:
                   - name: "Step-slider and input demo"
                     commands:
                       - command-name: "Step-slider and input demo"
-                        run: "say This is a step-slider value, !%step-slider:Choose a step slider, 0, 10, 1, 2, 3, 4, 5% and an input !%input:Enter a xuid, %xuid%%"
+                        run: "say This is a step-slider value, !%step-slider:Choose a step slider, 0, 0, 10, 1, 2, 3, 4, 5% and an input !%input:Enter a xuid, %xuid%%"
                   - name: "Toggle demo"
                     commands:
                       - command-name: "Toggle demo"
