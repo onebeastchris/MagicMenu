@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 
 group 'net.onebeastchris.extension.magicmenu'
@@ -35,24 +36,25 @@ dependencies {
         exclude group: 'io.netty'
     }
 
-    //implementation('com.fasterxml.jackson.core:jackson-databind:2.15.1')
     implementation('com.fasterxml.jackson.core:jackson-annotations:2.15.1')
     implementation('com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.1')
     implementation('com.fasterxml.jackson.core:jackson-core:2.15.1')
-
 }
 
 jar {
-    archiveFileName = 'MagicMenu-1.0.jar'
+    archiveFileName = 'MagicMenu-unshaded-1.0.jar'
 
-    // Include dependencies in the JAR
-    from(configurations.runtimeClasspath.getFiles()) {
-        into 'libs'
-    }
+}
+
+// Output to build/libs/shadow.jar
+shadowJar {
+    archiveBaseName.set('MagicMenu')
+    archiveClassifier.set('')
+
+    relocate('com.fasterxml.jackson', 'net.onebeastchris.extension.magicmenu.jackson')
 }
 
 java {
     sourceCompatibility = JavaVersion.VERSION_16
     targetCompatibility = JavaVersion.VERSION_16
 }
-
