@@ -12,7 +12,7 @@ show-emotes: true
 go-back: true
 
 # Debug mode: This will spam the console.
-debug: true
+debug: false
 
 # Define your menus here. You can have as many as you want, but practically, not more than 4 - one for each emote.
 menus:
