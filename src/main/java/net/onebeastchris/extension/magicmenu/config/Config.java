@@ -8,18 +8,21 @@ import java.util.List;
 
 public record Config(
         @JsonProperty("config-version") String version,
-        @JsonProperty("menus") List<EmoteDefinition> emoteDefinitions,
+        @JsonProperty("menus") List<Menu> menu,
         @JsonProperty("show-emotes") boolean showEmotes,
         @JsonProperty("go-back")boolean goBackOnClosed,
         @JsonProperty("debug") boolean debug
     ) {
-        public record EmoteDefinition(
+        public record Menu(
             @JsonProperty("emote-uuid")
-            @NonNull String emoteID,
+            // nullable since there can be menu only accessible via command.
+            @Nullable String emoteID,
 
             @JsonProperty("allowed-users")
             @Nullable List<String> allowedUsers,
 
+            @JsonProperty("menu-command")
+            @Nullable Command menuCommand,
             @JsonProperty("forms")
             List<Form> forms,
 
@@ -84,5 +87,20 @@ public record Config(
             default boolean hasCommands() {
                 return commands() != null && !commands().isEmpty();
             }
+        }
+
+        public record Command(
+            @JsonProperty("command-name")
+            String commandName,
+
+            @JsonProperty("description")
+            @Nullable String description,
+
+            @JsonProperty("aliases")
+            @Nullable List<String> aliases,
+
+            @JsonProperty("permission")
+            @Nullable String permission
+        ) {
         }
 }

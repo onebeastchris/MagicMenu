@@ -12,12 +12,14 @@ show-emotes: true
 go-back: true
 
 # Debug mode: This will spam the console.
-debug: false
+debug: true
 
 # Define your menus here. You can have as many as you want, but practically, not more than 4 - one for each emote.
 menus:
   # Enter the emote uuid here. Or, all for all emotes (not recommended). Take the uuid from here:
   # https://github.com/JustTalDevelops/bedrock-emotes
+  # Alternatively, you can also not set an emote-uuid, and instead, set a command to open the menu.
+  # Setting both an emote and a command will result in both being registered - see the last example at the bottom.
   # You can also set it to "all", this would mean that the menu would open for all emotes. You cannot have multiple "all" menus.
   - emote-uuid: all
     # Enter the allowed users here. If you want to allow all users, remove "allowed-users" entirely
@@ -125,3 +127,16 @@ menus:
       - command-name: "say"
         run: "say !%input:Enter a message, test message% %position% %username%"
 
+  # You can also open a menu with a command (/magicmenu [menu-command])
+  # The example here opens the weather menu with the command /magicmenu weather
+  # However, we also added a permission to the command, so only people with the permission "magicmenu.weather" can use it.
+  # Instead of permissions, you can define allowed-users via the bedrock username.
+  - menu-command:
+      command-name: "weather"
+      description: "Open the weather menu"
+      permission: "magicmenu.weather"
+      aliases:
+        - "w"
+    commands:
+      - command-name: "weather"
+        run: "weather !%dropdown:What's the weather gonna be?, rain, rain, clear, thunder%"

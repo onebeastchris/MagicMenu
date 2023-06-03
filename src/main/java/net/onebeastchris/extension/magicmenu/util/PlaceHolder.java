@@ -4,6 +4,7 @@ import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class PlaceHolder {
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public static String parsePlaceHolders(GeyserConnection connection, String message) {
         GeyserSession session = (GeyserSession) connection;
 

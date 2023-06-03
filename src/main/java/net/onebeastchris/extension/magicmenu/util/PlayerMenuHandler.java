@@ -14,14 +14,14 @@ public class PlayerMenuHandler {
 
     private final Stack<Object> stack = new Stack<>();
 
-    public PlayerMenuHandler(GeyserConnection connection, Config.EmoteDefinition emoteDefinition) {
+    public PlayerMenuHandler(GeyserConnection connection, Config.Menu menu) {
         // main emote definition to base on
         this.username = connection.bedrockUsername();
-        handle(emoteDefinition, connection);
+        handle(menu, connection);
     }
 
     private void handle(Object object, GeyserConnection connection) {
-        if (object instanceof Config.EmoteDefinition emoteDefinition) {
+        if (object instanceof Config.Menu emoteDefinition) {
             if (!checkForCommand(connection, emoteDefinition)) {
                 Config.Form form = null;
                 for (Config.Form form1 : emoteDefinition.forms()) {

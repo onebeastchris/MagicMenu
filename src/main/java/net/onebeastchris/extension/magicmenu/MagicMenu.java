@@ -3,14 +3,19 @@ package net.onebeastchris.extension.magicmenu;
 import net.onebeastchris.extension.magicmenu.config.Config;
 import net.onebeastchris.extension.magicmenu.config.ConfigLoader;
 import net.onebeastchris.extension.magicmenu.util.PlayerMenuHandler;
+import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.bedrock.ClientEmoteEvent;
 import org.geysermc.event.subscribe.Subscribe;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCommandsEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.extension.ExtensionLogger;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static net.onebeastchris.extension.magicmenu.util.PlayerMenuHandler.hasPerms;
 
@@ -19,6 +24,7 @@ public class MagicMenu implements Extension {
     public static ExtensionLogger getLogger() {
         return logger;
     }
+
     private static ExtensionLogger logger;
     private static Config config;
 
@@ -27,12 +33,15 @@ public class MagicMenu implements Extension {
     }
 
     boolean isAllEmotes = false;
-    private Map<String, Config.EmoteDefinition> menu_map;
+    private Map<String, Config.Menu> menu_map;
+
+    private Map<Command, Config.Menu> command_map;
 
     @Subscribe
     public void onGeyserPostInitializeEvent(GeyserPostInitializeEvent event) {
         logger = this.logger();
         menu_map = new HashMap<>();
+        command_map = new HashMap<>();
 
         try {
             config = ConfigLoader.load(this, MagicMenu.class, Config.class);
@@ -43,15 +52,24 @@ public class MagicMenu implements Extension {
                 disable();
             }
 
-            for (Config.EmoteDefinition formDefinition : config.emoteDefinitions()) {
-                if (formDefinition.emoteID().equals("all")) {
-                    isAllEmotes = true;
+            for (Config.Menu menu : config.menu()) {
+                if (menu.emoteID() == null && menu.menuCommand() == null) {
+                    logger().error("Emote definition has no emote id or command! This is a configuration issue.");
+                } else if (menu.emoteID() != null) {
+                    if (menu.emoteID().equals("all")) {
+                        isAllEmotes = true;
+                    }
+                    //you cant have *multiple* "all" definitions. well, you can, but only the last will be used.
+                    if (menu_map.containsKey(menu.emoteID())) {
+                        logger().warning("Multiple emote definitions for " + menu.emoteID() + " found! Only the last will be used.");
+                    }
+                    debug("emote id is not null, adding " + menu.emoteID() + " to emote map");
+                    menu_map.put(menu.emoteID(), menu);
                 }
-                //you cant have *multiple* "all" definitions. well, you can, but only the last will be used.
-                if (menu_map.containsKey(formDefinition.emoteID())) {
-                    logger().warning("Multiple emote definitions for " + formDefinition.emoteID() + " found! Only the last will be used.");
+                if (menu.menuCommand() != null) {
+                    debug("menu command is not null, adding " + menu.menuCommand() + " to command map");
+                    command_map.put(getCommand(menu.menuCommand()), menu);
                 }
-                menu_map.put(formDefinition.emoteID(), formDefinition);
             }
         } catch (Exception e) {
             logger().error("Failed to load MagicMenu config!", e);
@@ -76,13 +94,54 @@ public class MagicMenu implements Extension {
         }
     }
 
-    private void run(Config.EmoteDefinition emoteDefinition, ClientEmoteEvent event) {
-        if (!hasPerms(emoteDefinition.allowedUsers(), event.connection().bedrockUsername())) {
+    private void run(Config.Menu menu, ClientEmoteEvent event) {
+        if (!hasPerms(menu.allowedUsers(), event.connection().bedrockUsername())) {
             debug("player does not have perms for this emote");
             return;
         }
         event.setCancelled(!config.showEmotes());
-        new PlayerMenuHandler(event.connection(), emoteDefinition);
+        new PlayerMenuHandler(event.connection(), menu);
+    }
+
+    private Command getCommand(Config.Command command) {
+        String desc = Optional.ofNullable(command.description()).orElse("Opens the " + command + " menu");
+        String perm = Optional.ofNullable(command.permission()).orElse("");
+
+        return Command.builder(this)
+                .name(command.commandName())
+                .bedrockOnly(true)
+                .source(GeyserConnection.class)
+                .aliases(Optional.ofNullable(command.aliases()).orElse(List.of()))
+                .description(desc)
+                .executableOnConsole(false)
+                .suggestedOpOnly(false)
+                .permission(perm)
+                .executor((source, cmd, args) -> {
+                    debug("Running command " + cmd);
+                    if (command_map.containsKey(cmd)) {
+                        debug("command is in command_map");
+                        Config.Menu menu = command_map.get(cmd);
+                        GeyserConnection connection = (GeyserConnection) source;
+                        if (!hasPerms(menu.allowedUsers(), connection.bedrockUsername())) {
+                            debug("player does not have perms for this emote");
+                            return;
+                        }
+                        new PlayerMenuHandler(connection, menu);
+                        return;
+                    }
+                    debug("command " + cmd + "is not in command_map");
+                    source.sendMessage("The command " + cmd + "does not exist!");
+                })
+                .build();
+    }
+
+    @Subscribe
+    public void CommandEvent(GeyserDefineCommandsEvent commandsEvent) {
+        debug("Registering commands");
+        debug("command map size: " + command_map.size());
+        for (Command command : command_map.keySet()) {
+            commandsEvent.register(command);
+        }
     }
 
     public static void debug(String message) {
