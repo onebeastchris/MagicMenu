@@ -1,5 +1,9 @@
 # MagicMenu
 
+[![GitHub release](https://img.shields.io/github/release/onebeastchris/MagicMenu?include_prereleases=&sort=semver&color=yellowgreen)](https://github.com/onebeastchris/MagicMenu/releases/)
+[![License](https://img.shields.io/badge/License-MIT-yellowgreen)](https://github.com/onebeastchris/MagicMenu/blob/main/LICENSE)
+[![issues - MagicMenu](https://img.shields.io/github/issues/onebeastchris/MagicMenu)](https://github.com/onebeastchris/MagicMenu/issues)
+
 A Geyser Extension that allows you to run commnds by using an emote (or command). Has support for various placeholders, and allows for user input on parts of the commands. 
 Fully configurable! Define multiple forms (different ones for different players), chain them to one another, and even add images to buttons so they're more lively!
 
