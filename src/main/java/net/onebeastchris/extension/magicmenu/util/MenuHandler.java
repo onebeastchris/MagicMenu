@@ -2,7 +2,6 @@ package net.onebeastchris.extension.magicmenu.util;
 
 import net.onebeastchris.extension.magicmenu.MagicMenu;
 import net.onebeastchris.extension.magicmenu.config.Config;
-import org.geysermc.common.PlatformType;
 import org.geysermc.cumulus.component.Component;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.component.StepSliderComponent;
@@ -10,6 +9,7 @@ import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
@@ -232,7 +232,7 @@ public class MenuHandler {
         GeyserSession session = (GeyserSession) connection;
 
         MagicMenu.debug("Sending command: " + command);
-        if (session.getGeyser().getPlatformType() == PlatformType.STANDALONE &&
+        if (MagicMenu.thisPlatform == PlatformType.STANDALONE &&
                 session.getGeyser().commandManager().runCommand(session, command)) {
             return;
         }

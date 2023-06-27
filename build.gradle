@@ -29,10 +29,10 @@ repositories {
 
 dependencies {
     // Geyser API - needed for all extensions
-    compileOnly('org.geysermc.geyser:api:2.1.0-SNAPSHOT')
+    compileOnly('org.geysermc.geyser:api:2.1.1-SNAPSHOT')
 
     // Include other dependencies here - e.g. for configuration.
-    compileOnly('org.geysermc.geyser:core:2.1.0-SNAPSHOT') {
+    compileOnly('org.geysermc.geyser:core:2.1.1-SNAPSHOT') {
         exclude group: 'io.netty'
     }
 

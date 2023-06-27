@@ -11,6 +11,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCommandsEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.extension.ExtensionLogger;
+import org.geysermc.geyser.api.util.PlatformType;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,7 @@ import static net.onebeastchris.extension.magicmenu.util.PlayerMenuHandler.hasPe
 
 public class MagicMenu implements Extension {
 
+    public static PlatformType thisPlatform;
     public static ExtensionLogger getLogger() {
         return logger;
     }
@@ -42,6 +44,7 @@ public class MagicMenu implements Extension {
         logger = this.logger();
         menu_map = new HashMap<>();
         command_map = new HashMap<>();
+        thisPlatform = this.geyserApi().platformType();
 
         try {
             config = ConfigLoader.load(this, MagicMenu.class, Config.class);
