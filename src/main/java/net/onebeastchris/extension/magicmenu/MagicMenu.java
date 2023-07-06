@@ -8,7 +8,7 @@ import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.bedrock.ClientEmoteEvent;
 import org.geysermc.event.subscribe.Subscribe;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCommandsEvent;
-import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.extension.ExtensionLogger;
 import org.geysermc.geyser.api.util.PlatformType;
@@ -40,7 +40,7 @@ public class MagicMenu implements Extension {
     private Map<Command, Config.Menu> command_map;
 
     @Subscribe
-    public void onGeyserPostInitializeEvent(GeyserPostInitializeEvent event) {
+    public void onGeyserPreInitialize(GeyserPreInitializeEvent event) {
         logger = this.logger();
         menu_map = new HashMap<>();
         command_map = new HashMap<>();
@@ -82,7 +82,6 @@ public class MagicMenu implements Extension {
         }
         logger().info("MagicMenu loaded!");
     }
-
 
     @Subscribe
     public void onEmote(ClientEmoteEvent event) {
