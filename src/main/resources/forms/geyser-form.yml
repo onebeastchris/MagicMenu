@@ -1,0 +1,27 @@
+form-title: "Geyser Commands"
+form-description: "This is a demo of some of the Geyser commands you can use!"
+buttons:
+  - name: "statistics"
+    commands:
+      - command-name: "geyser statistics"
+        run: "geyser statistics"
+  - name: "offhand"
+    commands:
+      - command-name: "geyser offhand"
+        run: "geyser offhand"
+  - name: "tooltips"
+    commands:
+      - command-name: "geyser tooltips"
+        run: "geyser tooltips"
+  - name: "advancements"
+    commands:
+      - command-name: "geyser advancements"
+        run: "geyser advancements"
+  - name: "dump"
+    commands:
+      - command-name: "geyser dump"
+        run: "geyser dump"
+        allowed-users:
+          - onebeastchris
+          - onebeastofchris
+          - someotheraccount

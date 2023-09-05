@@ -2,6 +2,7 @@ package net.onebeastchris.extension.magicmenu.util;
 
 import net.onebeastchris.extension.magicmenu.MagicMenu;
 import net.onebeastchris.extension.magicmenu.config.Config;
+import org.geysermc.api.connection.Connection;
 import org.geysermc.cumulus.component.Component;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.component.StepSliderComponent;
@@ -30,19 +31,19 @@ public class MenuHandler {
         Map<String, Config.Button> temp = new HashMap<>();
 
         SimpleForm.Builder simpleForm = SimpleForm.builder()
-                .title(PlaceHolder.parsePlaceHolders(connection, formDefinition.title()));
+                .title(parse(connection, formDefinition.title()));
 
         if (formDefinition.description() != null && !formDefinition.description().isEmpty()) {
-            simpleForm.content(PlaceHolder.parsePlaceHolders(connection, formDefinition.description()));
+            simpleForm.content(parse(connection, formDefinition.description()));
         }
 
         for (Config.Button button : formDefinition.buttons()) {
-            if (PlayerMenuHandler.hasPerms(button.allowedUsers(), connection.bedrockUsername())) {
+            if (button.isAllowed(connection.bedrockUsername())) {
                 String name = PlaceHolder.parsePlaceHolders(connection, button.name());
                 if (button.imageUrl() == null || button.imageUrl().isEmpty()) {
                     simpleForm.button(name);
                 } else {
-                    simpleForm.button(name, FormImage.Type.URL, PlaceHolder.parsePlaceHolders(connection, button.imageUrl()));
+                    simpleForm.button(name, FormImage.Type.URL, parse(connection, button.imageUrl()));
                 }
                 temp.put(name, button);
             }
@@ -67,23 +68,24 @@ public class MenuHandler {
         return futureResult;
     }
 
-    static CompletableFuture<ResultType> executeCommand(GeyserConnection connection, Config.CommandHolder commandHolder) {
+    static CompletableFuture<ResultType> executeCommand(GeyserConnection connection, Config.CommandExecutor commandExecutor) {
         CompletableFuture<ResultType> completableFuture = new CompletableFuture<>();
-        if (commandHolder.command().isEmpty()) {
-            MagicMenu.getLogger().error(commandHolder + " is invalid, has no command!");
+
+        if (commandExecutor.command().isEmpty()) {
+            MagicMenu.logger.error(commandExecutor + " is invalid, has no command defined!");
             completableFuture.complete(ResultType.CANCELLED);
             return completableFuture;
         }
 
-        if (!PlayerMenuHandler.hasPerms(commandHolder.allowedUsers(), connection.bedrockUsername())) {
+        if (!commandExecutor.isAllowed(connection.bedrockUsername())) {
             // Only way I see this happening would be a weird config where a button is for all,
             // but the command behind it is locked...
-            MagicMenu.getLogger().error(commandHolder + " cannot be run by " + connection.bedrockUsername() + "!");
+            MagicMenu.logger.error(commandExecutor + " cannot be run by " + connection.bedrockUsername() + "!");
             completableFuture.complete(ResultType.CANCELLED);
             return completableFuture;
         }
 
-        String command = PlaceHolder.parsePlaceHolders(connection, commandHolder.command());
+        String command = parse(connection, commandExecutor.command());
 
         // skip input placeholder if none are present
         if (!command.contains("!%")) {
@@ -108,7 +110,7 @@ public class MenuHandler {
             return completableFuture;
         }
 
-        String name = PlaceHolder.parsePlaceHolders(connection, commandHolder.name());
+        String name = parse(connection, commandExecutor.name() != null ? commandExecutor.name() : "");
         CustomForm.Builder formBuilder = CustomForm.builder()
                 .title(name);
 
@@ -121,7 +123,7 @@ public class MenuHandler {
             switch (type) {
                 case "input" -> {
                     if (options.length < 2) {
-                        MagicMenu.getLogger().error("Invalid input placeholder: " + placeholder + " in " + name);
+                        MagicMenu.logger.error("Invalid input placeholder: " + placeholder + " in " + name);
                         completableFuture.complete(ResultType.FAILURE);
                         return completableFuture;
                     }
@@ -130,7 +132,7 @@ public class MenuHandler {
                 }
                 case "toggle" -> {
                     if (options.length < 2) {
-                        MagicMenu.getLogger().error("Invalid toggle placeholder: " + placeholder + " in " + name);
+                        MagicMenu.logger.error("Invalid toggle placeholder: " + placeholder + " in " + name);
                         completableFuture.complete(ResultType.FAILURE);
                         return completableFuture;
                     }
@@ -140,7 +142,7 @@ public class MenuHandler {
                 }
                 case "dropdown" -> {
                     if (options.length < 4) {
-                        MagicMenu.getLogger().error("Invalid dropdown placeholder: " + placeholder + " in " + name);
+                        MagicMenu.logger.error("Invalid dropdown placeholder: " + placeholder + " in " + name);
                         completableFuture.complete(ResultType.FAILURE);
                         return completableFuture;
                     }
@@ -151,7 +153,7 @@ public class MenuHandler {
                 }
                 case "slider" -> {
                     if (options.length < 5) {
-                        MagicMenu.getLogger().error("Invalid slider placeholder: " + placeholder + " in " + name);
+                        MagicMenu.logger.error("Invalid slider placeholder: " + placeholder + " in " + name);
                         completableFuture.complete(ResultType.FAILURE);
                         return completableFuture;
                     }
@@ -169,7 +171,7 @@ public class MenuHandler {
                 }
                 case "step-slider" -> {
                     if (options.length < 1) {
-                        MagicMenu.getLogger().error("Invalid slider placeholder: " + placeholder + " in " + name);
+                        MagicMenu.logger.error("Invalid slider placeholder: " + placeholder + " in " + name);
                         completableFuture.complete(ResultType.FAILURE);
                         return completableFuture;
                     }
@@ -232,7 +234,8 @@ public class MenuHandler {
         GeyserSession session = (GeyserSession) connection;
 
         MagicMenu.debug("Sending command: " + command);
-        if (MagicMenu.thisPlatform == PlatformType.STANDALONE &&
+        // hack: run geyser/extension commands on Geyser standalone
+        if (MagicMenu.platformType == PlatformType.STANDALONE &&
                 session.getGeyser().commandManager().runCommand(session, command)) {
             return;
         }
@@ -251,7 +254,11 @@ public class MenuHandler {
                 return i;
             }
         }
-        MagicMenu.getLogger().warning("Could not find default argument: " + arg + " in dropdown/stepslider placeholders: " + Arrays.toString(args));
+        MagicMenu.logger.warning("Could not find default argument: " + arg + " in dropdown/stepslider placeholders: " + Arrays.toString(args));
         return 0;
+    }
+
+    private static String parse(GeyserConnection connection, String string) {
+        return PlaceHolder.parsePlaceHolders(connection, string);
     }
 }

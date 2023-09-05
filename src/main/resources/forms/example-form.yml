@@ -1,0 +1,28 @@
+# This an example-form.yml. You can define as many forms as you want, one per each file.
+
+form-title: "Placeholders demo form"
+form-description: "This is a demo of some of the placeholders you can use!"
+buttons:
+  - name: "Position: %position%"
+    commands:
+      - command-name: "Position"
+        run: "say this is my position: %position%"
+  - name: "Username: %username%"
+    commands:
+      - command-name: "Username"
+        run: "say sent by %username%"
+  - name: "Dropdown & slider demo"
+    commands:
+      - command-name: "Dropdown & slider demo"
+        run: "say Dropdown: !%dropdown:Choose a dropdown, default, default, just, some, more, options%, slider: !%slider:Choose a slider, 0, 10, 1, 5%"
+  - name: "Step-slider and input demo"
+    commands:
+      - command-name: "Step-slider and input demo"
+        run: "say This is a step-slider value, !%step-slider:Choose a step slider, 0, 0, 10, 1, 2, 3, 4, 5% and an input !%input:Enter a xuid, %xuid%%"
+  - name: "Toggle demo"
+    commands:
+      - command-name: "Toggle demo"
+        run: "say This is a boolean: !%toggle:Choose a toggle, true%"
+  - name: "Geyser Commands"
+    forms:
+      - form-id: "geyser-form"

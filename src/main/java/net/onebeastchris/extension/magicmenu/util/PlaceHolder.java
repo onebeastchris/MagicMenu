@@ -1,5 +1,6 @@
 package net.onebeastchris.extension.magicmenu.util;
 
+import net.onebeastchris.extension.magicmenu.MagicMenu;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.session.GeyserSession;
 

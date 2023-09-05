@@ -1,0 +1,34 @@
+# Magicmenu
+
+# You can define accessors to forms or specific commands here.
+# Note: allowed-users exist only for emote-accessors; since for commands you can just give the permission with a permissions manager.
+
+# Here, you can define commands as quick access to any command form (or command; although that is fairly useless)
+command-accessors:
+  - command: "/magicmenu example"
+    permission: "magicmenu.example"
+    aliases:
+      - "ex"
+      - "example"
+    executes-command:
+      - run: "/say example"
+
+  - command: "/magicmenu weather"
+    permission: "magicmenu.weather"
+    description: "Changes the weather"
+    executes-command:
+      - command-name: "Change the weather, %username%!"
+        run: "/weather !%dropdown:Choose a weather, clear, clear, rain, thunderstorm%"
+
+# Here, you can define emotes as quick access to any command/form
+# You need to enter an emote-uuid; or "all" so the accessor runs on all emotes (not recommended). Get emote uuids from here:
+# https://github.com/JustTalDevelops/bedrock-emotes
+emote-accessors:
+  - emote-uuid: 6d9f24c0-6246-4c92-8169-4648d1981cbb
+    executes-command:
+      - command-name: Gamemode Chooser
+        run: "/gamemode !%dropdown:Choose a gamemode, creative, creative, survival, adventure, spectator%"
+
+  - emote-uuid: all
+    executes-form:
+      - form-id: "example-form"

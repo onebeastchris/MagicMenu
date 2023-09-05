@@ -8,30 +8,10 @@ import java.util.List;
 
 public record Config(
         @JsonProperty("config-version") String version,
-        @JsonProperty("menus") List<Menu> menu,
         @JsonProperty("show-emotes") boolean showEmotes,
         @JsonProperty("go-back")boolean goBackOnClosed,
         @JsonProperty("debug") boolean debug
     ) {
-        public record Menu(
-            @JsonProperty("emote-uuid")
-            // nullable since there can be menu only accessible via command.
-            @Nullable String emoteID,
-
-            @JsonProperty("allowed-users")
-            @Nullable List<String> allowedUsers,
-
-            @JsonProperty("menu-command")
-            @Nullable Command menuCommand,
-            @JsonProperty("forms")
-            List<Form> forms,
-
-            @JsonProperty("commands")
-            List<CommandHolder> commands
-        ) implements holder {
-
-        }
-
         public record Form (
             @JsonProperty("form-title")
             @NonNull String title,
@@ -41,66 +21,107 @@ public record Config(
 
             @JsonProperty("buttons")
             List<Button> buttons,
-
             @JsonProperty("allowed-users")
             List<String> allowedUsers
-        ) {
 
-        }
-        public record Button(
+        ) implements Restrictable { }
+
+        public record Button (
             @JsonProperty("name")
             @NonNull String name,
-
-            @JsonProperty("allowed-users")
-            @Nullable List<String> allowedUsers,
 
             @JsonProperty("image-url")
             String imageUrl,
 
-            // emote -> form -> command
-            // in case of a direct command.
             // multiple commands, in the edge case, that someone has multiple commands with different permissions.
             @JsonProperty("commands")
-            List<CommandHolder> commands,
+            List<CommandExecutor> commands,
+
             @JsonProperty("forms")
-            List<Form> forms
-        ) implements holder {
-
-        }
-
-        public record CommandHolder(
+            List<FormExecutor> forms,
 
             @JsonProperty("allowed-users")
-            @Nullable List<String> allowedUsers,
+            @Nullable List<String> allowedUsers
+        ) implements Restrictable, Accessors.Accessor {
+            @Override
+            public Accessors.AccessorType type() {
+                return Accessors.AccessorType.BUTTON;
+            }
 
-            @JsonProperty("command-name")
-            String name,
+            @Override
+            public boolean hasCommands() {
+                return commands != null && !commands.isEmpty();
+            }
 
-            @JsonProperty("run")
-            @NonNull String command
-        ) {
-        }
+            @Override
+            public boolean hasForms() {
+                return forms != null && !forms.isEmpty();
+            }
 
-        public interface holder {
-            List<CommandHolder> commands();
+            @Override
+            public List<FormExecutor> formExecutors() {
+                return forms;
+            }
 
-            default boolean hasCommands() {
-                return commands() != null && !commands().isEmpty();
+            @Override
+            public List<CommandExecutor> commandExecutors() {
+                return commands;
+            }
+
+            @Override
+            public Executor getExecutorForUsername(String username) {
+                return Accessors.Accessor.super.getExecutorForUsername(username);
             }
         }
 
-        public record Command(
+        public record CommandExecutor (
             @JsonProperty("command-name")
-            String commandName,
+            @Nullable String name,
 
-            @JsonProperty("description")
-            @Nullable String description,
+            @JsonProperty("run")
+            @NonNull String command,
 
-            @JsonProperty("aliases")
-            @Nullable List<String> aliases,
+            @JsonProperty("allowed-users")
+            @Nullable List<String> allowedUsers
+        ) implements Restrictable, Executor {
+            @Override
+            public ExecutorType type() {
+                return ExecutorType.COMMAND;
+            }
+        }
 
-            @JsonProperty("permission")
-            @Nullable String permission
-        ) {
+        public record FormExecutor (
+            @JsonProperty("form-id")
+            @NonNull String id,
+
+            @JsonProperty("allowed-users")
+            @Nullable List<String> allowedUsers
+
+        ) implements Restrictable, Executor {
+            @Override
+            public ExecutorType type() {
+                return ExecutorType.FORM;
+            }
+        }
+
+        public interface Restrictable {
+            List<String> allowedUsers();
+
+            default boolean hasAllowedUsers() {
+                return allowedUsers() != null && !allowedUsers().isEmpty();
+            }
+
+            default boolean isAllowed(String user) {
+                return !hasAllowedUsers() || allowedUsers().contains(user);
+            }
+        }
+
+        public interface Executor {
+            ExecutorType type();
+        }
+
+        public enum ExecutorType {
+            COMMAND,
+            FORM
         }
 }
