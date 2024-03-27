@@ -211,10 +211,10 @@ public class MenuHandler {
                                 value = ((StepSliderComponent) component).steps().get(response.asStepSlider(i));
                     }
                     MagicMenu.debug("Replacing: " + replace + " with " + value);
-                        finalCommand.set(finalCommand.get().replaceFirst("!%" + replace + "%", String.valueOf(value)));
+                    replacePlaceholder(finalCommand, replace, value);
                 } else {
                     MagicMenu.debug("Replacing: " + replace + " with default: " + defaultValue);
-                        finalCommand.set(finalCommand.get().replaceFirst("!%" + replace + "%", defaultValue));
+                    replacePlaceholder(finalCommand, replace, value);
                 }
             }
             sendCommand(connection, finalCommand.get());
@@ -226,6 +226,19 @@ public class MenuHandler {
 
         connection.sendForm(formBuilder);
         return completableFuture;
+    }
+
+    // using replaceFirst with the regex does not seem to work reliabl
+    private static void replacePlaceholder(AtomicReference<String> finalCommand, String replace, Object value) {
+        MagicMenu.debug("attempt to replace: " + replace + " with value " + value);
+        String temp = finalCommand.get();
+        int index = temp.indexOf("!%" + replace + "%");
+        if (index != -1) {
+            String before = temp.substring(0, index);
+            String after = temp.substring(index + ("!%" + replace + "%").length());
+            temp = before + value + after;
+        }
+        finalCommand.set(temp);
     }
 
     private static void sendCommand(GeyserConnection connection, String command) {
