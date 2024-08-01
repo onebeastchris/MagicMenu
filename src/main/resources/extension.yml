@@ -1,6 +1,6 @@
 id: magicmenu
 name: MagicMenu
 main: net.onebeastchris.extension.magicmenu.MagicMenu
-api: 1.0.0
+api: 2.4.1
 version: 1.0.3
 authors: [onebeastchris]
