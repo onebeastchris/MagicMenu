@@ -11,7 +11,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCommandsEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.extension.ExtensionLogger;
-import org.geysermc.geyser.api.util.PlatformType;
+import org.geysermc.geyser.api.util.TriState;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +22,6 @@ import static net.onebeastchris.extension.magicmenu.util.PlayerMenuHandler.hasPe
 
 public class MagicMenu implements Extension {
 
-    public static PlatformType thisPlatform;
     public static ExtensionLogger getLogger() {
         return logger;
     }
@@ -35,16 +34,15 @@ public class MagicMenu implements Extension {
     }
 
     boolean isAllEmotes = false;
-    private Map<String, Config.Menu> menu_map;
+    private Map<String, Config.Menu> menuMap;
 
-    private Map<Command, Config.Menu> command_map;
+    private Map<Command, Config.Menu> commandMap;
 
     @Subscribe
     public void onGeyserPreInitialize(GeyserPreInitializeEvent event) {
         logger = this.logger();
-        menu_map = new HashMap<>();
-        command_map = new HashMap<>();
-        thisPlatform = this.geyserApi().platformType();
+        menuMap = new HashMap<>();
+        commandMap = new HashMap<>();
 
         try {
             config = ConfigLoader.load(this, MagicMenu.class, Config.class);
@@ -63,15 +61,15 @@ public class MagicMenu implements Extension {
                         isAllEmotes = true;
                     }
                     //you cant have *multiple* "all" definitions. well, you can, but only the last will be used.
-                    if (menu_map.containsKey(menu.emoteID())) {
+                    if (menuMap.containsKey(menu.emoteID())) {
                         logger().warning("Multiple emote definitions for " + menu.emoteID() + " found! Only the last will be used.");
                     }
                     debug("emote id is not null, adding " + menu.emoteID() + " to emote map");
-                    menu_map.put(menu.emoteID(), menu);
+                    menuMap.put(menu.emoteID(), menu);
                 }
                 if (menu.menuCommand() != null) {
                     debug("menu command is not null, adding " + menu.menuCommand() + " to command map");
-                    command_map.put(getCommand(menu.menuCommand()), menu);
+                    commandMap.put(getCommand(menu.menuCommand()), menu);
                 }
             }
         } catch (Exception e) {
@@ -87,12 +85,12 @@ public class MagicMenu implements Extension {
     public void onEmote(ClientEmoteEvent event) {
         debug(event.connection().bedrockUsername() + "sent emote with emote id: " + event.emoteId());
 
-        if (menu_map.containsKey(event.emoteId())) {
+        if (menuMap.containsKey(event.emoteId())) {
             debug("emote id is in menu_map");
-            run(menu_map.get(event.emoteId()), event);
+            run(menuMap.get(event.emoteId()), event);
         } else if (isAllEmotes) {
             debug("emote id is not in menu_map, but there is an all emote");
-            run(menu_map.get("all"), event);
+            run(menuMap.get("all"), event);
         }
     }
 
@@ -115,14 +113,13 @@ public class MagicMenu implements Extension {
                 .source(GeyserConnection.class)
                 .aliases(Optional.ofNullable(command.aliases()).orElse(List.of()))
                 .description(desc)
-                .executableOnConsole(false)
-                .suggestedOpOnly(false)
-                .permission(perm)
+                .playerOnly(true)
+                .permission(perm, TriState.TRUE)
                 .executor((source, cmd, args) -> {
                     debug("Running command " + cmd);
-                    if (command_map.containsKey(cmd)) {
+                    if (commandMap.containsKey(cmd)) {
                         debug("command is in command_map");
-                        Config.Menu menu = command_map.get(cmd);
+                        Config.Menu menu = commandMap.get(cmd);
                         GeyserConnection connection = (GeyserConnection) source;
                         if (!hasPerms(menu.allowedUsers(), connection.bedrockUsername())) {
                             debug("player does not have perms for this emote");
@@ -140,8 +137,8 @@ public class MagicMenu implements Extension {
     @Subscribe
     public void CommandEvent(GeyserDefineCommandsEvent commandsEvent) {
         debug("Registering commands");
-        debug("command map size: " + command_map.size());
-        for (Command command : command_map.keySet()) {
+        debug("command map size: " + commandMap.size());
+        for (Command command : commandMap.keySet()) {
             commandsEvent.register(command);
         }
     }

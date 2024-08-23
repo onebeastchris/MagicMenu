@@ -8,8 +8,10 @@ import org.geysermc.cumulus.component.StepSliderComponent;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.util.FormImage;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.util.PlatformType;
+import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
@@ -245,10 +247,22 @@ public class MenuHandler {
         GeyserSession session = (GeyserSession) connection;
 
         MagicMenu.debug("Sending command: " + command);
-        if (MagicMenu.thisPlatform == PlatformType.STANDALONE &&
-                session.getGeyser().commandManager().runCommand(session, command)) {
-            return;
+
+        if (session.getGeyser().getPlatformType() == PlatformType.STANDALONE ||
+                session.getGeyser().getPlatformType() == PlatformType.VIAPROXY) {
+            // try to handle the command within the standalone/viaproxy command manager
+            String[] args = command.split(" ");
+            if (args.length > 0) {
+                String root = args[0];
+
+                CommandRegistry registry = GeyserImpl.getInstance().commandRegistry();
+                if (registry.rootCommands().contains(root)) {
+                    registry.runCommand(session, command);
+                    return; // don't pass the command to the java server
+                }
+            }
         }
+
         session.sendCommand(command);
     }
 
