@@ -8,17 +8,11 @@ import org.geysermc.cumulus.component.StepSliderComponent;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.util.FormImage;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.command.CommandRegistry;
-import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -29,7 +23,7 @@ public class MenuHandler {
 
     static CompletableFuture<Config.Button> sendForm(GeyserConnection connection, Config.Form formDefinition) {
 
-        Map<String, Config.Button> temp = new HashMap<>();
+        List<Config.Button> visibleButtons = new ArrayList<>();
 
         SimpleForm.Builder simpleForm = SimpleForm.builder()
                 .title(PlaceHolder.parsePlaceHolders(connection, formDefinition.title()));
@@ -46,22 +40,28 @@ public class MenuHandler {
                 } else {
                     simpleForm.button(name, FormImage.Type.URL, PlaceHolder.parsePlaceHolders(connection, button.imageUrl()));
                 }
-                temp.put(name, button);
+                visibleButtons.add(button);
             }
         }
 
         CompletableFuture<Config.Button> futureResult = new CompletableFuture<>();
 
         simpleForm.validResultHandler((form, response) -> {
-            Config.Button button = temp.get(response.clickedButton().text());
-            temp.clear();
+            int buttonId = response.clickedButtonId();
+            if (buttonId < 0 || buttonId >= visibleButtons.size()) {
+                MagicMenu.getLogger().error("Invalid button index " + buttonId + " in form "
+                        + formDefinition.title() + " for " + connection.bedrockUsername());
+                futureResult.complete(null);
+                return;
+            }
+
+            Config.Button button = visibleButtons.get(buttonId);
             MagicMenu.debug("Clicked button " + button.name() + " in form " + formDefinition.title() + " for " + connection.bedrockUsername());
             futureResult.complete(button);
         });
 
         simpleForm.closedOrInvalidResultHandler((form, response) -> {
             MagicMenu.debug("Invalid result for " + connection.bedrockUsername() + " in form " + formDefinition.title());
-            temp.clear();
             futureResult.complete(null);
         });
 
@@ -244,26 +244,18 @@ public class MenuHandler {
     }
 
     private static void sendCommand(GeyserConnection connection, String command) {
-        GeyserSession session = (GeyserSession) connection;
-
-        MagicMenu.debug("Sending command: " + command);
-
-        if (session.getGeyser().getPlatformType() == PlatformType.STANDALONE ||
-                session.getGeyser().getPlatformType() == PlatformType.VIAPROXY) {
-            // try to handle the command within the standalone/viaproxy command manager
-            String[] args = command.split(" ");
-            if (args.length > 0) {
-                String root = args[0];
-
-                CommandRegistry registry = GeyserImpl.getInstance().commandRegistry();
-                if (registry.rootCommands().contains(root)) {
-                    registry.runCommand(session, command);
-                    return; // don't pass the command to the java server
-                }
-            }
+        String normalizedCommand = command.trim();
+        while (normalizedCommand.startsWith("/")) {
+            normalizedCommand = normalizedCommand.substring(1).trim();
         }
 
-        session.sendCommand(command);
+        if (normalizedCommand.isEmpty()) {
+            MagicMenu.getLogger().error("Cannot execute an empty command for " + connection.bedrockUsername());
+            return;
+        }
+
+        MagicMenu.debug("Sending command: " + normalizedCommand);
+        connection.sendCommand(normalizedCommand);
     }
 
     enum ResultType {

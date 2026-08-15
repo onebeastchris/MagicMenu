@@ -1,12 +1,12 @@
 package net.onebeastchris.extension.magicmenu.util;
 
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.session.GeyserSession;
+import org.cloudburstmc.math.vector.Vector3f;
 
 public class PlaceHolder {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static String parsePlaceHolders(GeyserConnection connection, String message) {
-        GeyserSession session = (GeyserSession) connection;
+        Vector3f position = connection.playerEntity().position();
 
         // safety check
         if (message.startsWith("/")) {
@@ -21,11 +21,11 @@ public class PlaceHolder {
                 .replace("%version%", connection.version())
                 .replace("%device%", connection.inputMode().name())
                 .replace("%lang%", connection.languageCode())
-                .replace("%x%", String.valueOf(session.getPlayerEntity().getPosition().getX()))
-                .replace("%y%", String.valueOf(session.getPlayerEntity().getPosition().getY()))
-                .replace("%z%", String.valueOf(session.getPlayerEntity().getPosition().getZ()))
-                .replace("%position%", Math.floor(session.getPlayerEntity().getPosition().getX())
-                        + " " + Math.floor(session.getPlayerEntity().getPosition().getY())
-                        + " " + Math.floor(session.getPlayerEntity().getPosition().getZ()));
+                .replace("%x%", String.valueOf(position.getX()))
+                .replace("%y%", String.valueOf(position.getY()))
+                .replace("%z%", String.valueOf(position.getZ()))
+                .replace("%position%", Math.floor(position.getX())
+                        + " " + Math.floor(position.getY())
+                        + " " + Math.floor(position.getZ()));
     }
 }
