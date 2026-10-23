@@ -9,6 +9,7 @@ import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
@@ -248,8 +249,8 @@ public class MenuHandler {
 
         MagicMenu.debug("Sending command: " + command);
 
-        if (session.getGeyser().getPlatformType() == PlatformType.STANDALONE ||
-                session.getGeyser().getPlatformType() == PlatformType.VIAPROXY) {
+        if (GeyserApi.api().platformType() == PlatformType.STANDALONE ||
+            GeyserApi.api().platformType() == PlatformType.VIAPROXY) {
             // try to handle the command within the standalone/viaproxy command manager
             String[] args = command.split(" ");
             if (args.length > 0) {
