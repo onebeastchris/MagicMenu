@@ -1,10 +1,10 @@
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "9.6.1"
 }
 
 group="net.onebeastchris.extension.magicmenu"
-version="1.0.3"
+version="2.0"
 
 repositories {
     mavenCentral()
@@ -16,13 +16,13 @@ repositories {
 }
 
 dependencies {
+    val geyserVersion = "2.12.0-SNAPSHOT"
+
     // Geyser API - needed for all extensions
-    compileOnly("org.geysermc.geyser:api:2.4.2-SNAPSHOT")
+    compileOnly("org.geysermc.geyser:api:$geyserVersion")
 
     // Include other dependencies here - e.g. for configuration.
-    compileOnly("org.geysermc.geyser:core:2.4.2-SNAPSHOT") {
-        isTransitive = false
-    }
+    compileOnly("org.geysermc.geyser:core:$geyserVersion")
 
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.2")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.2")
@@ -46,6 +46,6 @@ tasks {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
