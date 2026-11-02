@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    val geyserVersion = "2.12.0-SNAPSHOT"
+    val geyserVersion = "2.12.1-SNAPSHOT"
 
     // Geyser API - needed for all extensions
     compileOnly("org.geysermc.geyser:api:$geyserVersion")
